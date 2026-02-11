@@ -1,8 +1,9 @@
 # docassemble.CivilDocketingStatementWord
 
-Civil docketing statement word
+Civil Docketing Statement for the Massachusetts Appeals Court
 
 ## Author
 
-author@example.com
+kathryn.lynch@su.suffolk.edu
+
 
