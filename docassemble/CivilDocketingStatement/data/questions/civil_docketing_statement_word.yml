@@ -1,0 +1,663 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALAnyState:any_state.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+metadata:
+  title: >-
+    Civil docketing statement word
+  short title: >-
+    Civil docketing statement
+  description: |-
+    This interview helps someone in Massachusetts get a Civil docketing statement word.
+  can_I_use_this_form: |
+    If you are a _____________, you can use this interview to ____________.
+  before_you_start: |
+    This interview will help you get a Civil docketing statement word.
+
+    Before you get started, please gather:
+
+    1.
+    2.
+    3.
+
+    When you are finished, you will need to:
+
+    1.
+    2.
+  maturity: production
+  estimated_completion_minutes: 10
+  estimated_completion_delta: 5
+  LIST_topics:
+    - "CO-00-00-00-00"
+    - "CO-07-00-00-00"
+  tags:
+    - "CO-00-00-00-00"
+    - "CO-07-00-00-00"
+  authors:
+  original_form: []
+  original_form_published_on: ""
+  allowed_courts: []
+  typical_role: "unknown"
+  al_weaver_version: "1.11.0"
+  generated_on: "2026-02-04"
+  languages:
+    - en
+  jurisdiction: NAM-US-US+MA
+  review_date: 2026-02-04
+  form_titles:
+    - Civil docketing statement word
+  form_numbers: []
+  update_notes: |
+---
+code: |
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  AL_DEFAULT_STATE = "MA"
+---
+code: |
+  github_repo_name = 'docassemble-CivilDocketingStatementWord'
+---
+code: |
+  interview_short_title = "Get a Civil docketing statement word"
+---
+code: |
+  al_form_type = "appeal"
+---
+objects:
+  - users: ALPeopleList.using(ask_number=False, target_number=1)
+---
+sections:
+  - review_civil_docketing_statement_word: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_civil_docketing_statement_word
+code: |
+  allowed_courts = []
+  nav.set_section("review_civil_docketing_statement_word")
+  
+  # user information
+  filer_role
+  users[0].name.first
+  if filer_role == "attorney":
+    appellant_name
+    attorney_bbo
+  users[0].address.address
+  users[0].phone_number
+
+  # case info
+  appeal_docket_number
+  plaintiff_caption
+  defendant_caption
+  court_department 
+  lower_docket_number
+
+  # judge information
+  info_judge1
+  more_judges_1
+
+  if has_judge2:
+    info_judge2
+    more_judges_2
+  else:
+    judge2 = judge2_role = "N/A"
+    judge3 = judge3_role = "N/A"
+
+  if has_judge2 and has_judge3:
+    info_judge3
+  else:
+    judge3 = judge3_role = "N/A"
+
+  # impoundement info  
+  record_impounded
+  if record_impounded:
+    impoundment_details
+
+  # case and appeal information
+  nature_of_case
+  appeal_from_final_judgment
+  if not appeal_from_final_judgment:
+    interlocutory_appeal
+  date_of_judgment
+  date_of_notice
+  motions_filed
+  appellate_issues
+
+  # related appeals details 
+  related_appeals_parties
+  related_appeals_issues
+  if related_appeals_issues or related_appeals_parties:
+    related_appeals_details
+
+  # certificate of service 
+  service_type
+  parties_to_be_served
+  service_date
+  
+  # actual signature 
+  users[0].signature
+  
+  interview_order_civil_docketing_statement_word = True
+---
+###################### Main order ######################
+mandatory: True
+code: |
+  al_intro_screen
+  civil_docketing_statement_word_intro
+  interview_order_civil_docketing_statement_word
+  signature_date
+
+  store_variables_snapshot(
+      persistent=True,
+      data={
+          "zip": showifdef("users[0].address.zip"),
+          "reached_interview_end": True,
+      },
+  )
+  civil_docketing_statement_word_download
+---
+id: Civil_docketing_statement_word
+continue button field: civil_docketing_statement_word_intro
+question: |
+  Civil docketing statement word
+subquestion: |
+  This interview will help you get a Civil docketing statement word.
+
+  Before you get started, please gather:
+
+  1.
+  2.
+  3.
+
+  When you are finished, you will need to:
+
+  1.
+  2.
+
+  If you are a _____________, you can use this interview to ____________.
+
+  Most people take about 10 minutes to complete this interview.
+---
+id: filer_role_screen
+question: |
+  Who is filing this Civil Docketing Statement?
+fields:
+  - no label: filer_role
+    input type: radio
+    choices:
+      - I am an attorney representing the appellant: attorney
+      - I am self-represented (pro se) and I am the appellant: pro_se
+---
+id: filer_name_screen
+question: |
+  What is your name?
+subquestion: |
+  % if filer_role == "attorney":
+  If you are the attorney representing the appellant, please enter your name.
+  % else:
+  Enter **your** name (you are the appellant).
+  % endif
+fields:
+  - First name: users[0].name.first
+  - Middle name: users[0].name.middle
+    required: False
+  - Last name: users[0].name.last
+---
+id: appellant_name_screen
+question: |
+  What is the appellant's name?
+fields:
+  - Appellant name: appellant_name
+show if:
+  variable: filer_role
+  is: attorney
+---
+id: attorney_bbo_screen
+question: |
+  Attorney information
+fields:
+  - BBO number: attorney_bbo
+show if:
+  variable: filer_role
+  is: attorney
+---
+id: case_info_screen
+question: |
+  Case information
+fields:
+  - "Appeal docket number": appeal_docket_number
+  - "Plaintiff caption": plaintiff_caption
+  - "Defendant caption": defendant_caption
+---
+id: court_department
+question: |
+  Select the court that made the decision you are appealing.
+fields:
+  - no label: court_department
+    datatype: object
+    choices: all_courts     
+---
+
+id: lower_docket_number
+question: |
+  Please enter the lower court docket number. 
+fields:
+  - "lower court docket number": lower_docket_number
+---
+id: filer_contact
+question: |
+  Your contact information
+fields:
+  - Address: users[0].address.address
+  - City: users[0].address.city
+  - State: users[0].address.state
+    default: MA
+  - Zip: users[0].address.zip
+  - Telephone: users[0].phone_number
+---
+---
+id: info_judge1
+question: |
+  Please enter the full name of the Judge whose order or judgment is at issue and select their role. If there is more than one Judge whose order or judgment is at issue, you will have an opportunity to add their name later. 
+fields:
+  - Judge name (first and last): judge1
+  - Judge role: judge1_role
+    datatype: dropdown
+    choices:
+      - Entered Judgment
+      - Heard Motion
+      - Reported Case or Question
+      - Trial Judge
+continue button field: info_judge1
+---
+id: more_judges_1
+question: |
+  Is there another judge whose order or judgment is at issue?
+yesno: has_judge2
+continue button field: more_judges_1
+---
+id: info_judge2
+question: |
+  Please enter the full name of the Judge whose order or judgment is at issue and select their role. If there is more than one Judge whose order or judgment is at issue, you will have an opportunity to add their name later. 
+fields:
+  - Judge name (first and last): judge2
+  - Judge role: judge2_role
+    datatype: dropdown
+    choices:
+      - Entered Judgment
+      - Heard Motion
+      - Reported Case or Question
+      - Trial Judge
+continue button field: info_judge2
+---
+id: more_judges_2
+question: |
+  Is there another judge whose order or judgment is at issue?
+yesno: has_judge3
+continue button field: more_judges_2
+---
+id: info_judge3
+question: |
+  Please enter the full name of the Judge whose order or judgment is at issue and select their role.
+fields:
+  - Judge name (first and last): judge3
+  - Judge role: judge3_role
+    datatype: dropdown
+    choices:
+      - Entered Judgment
+      - Heard Motion
+      - Reported Case or Question
+      - Trial Judge
+continue button field: info_judge3
+---
+id: impoundment_checkbox
+question: |
+  Was the case or any information in the record designated as impounded in the lower court?
+yesno: record_impounded
+---
+id: impoundment_details_screen
+question: |
+  Impoundment details
+fields:
+  - Impounded documents and authority: impoundment_details
+    datatype: area
+---
+id: Nature of the Case
+question: |
+  Select the most appropriate description of the case 
+fields:
+  - no label: nature_of_case
+    choices:
+      - Abuse Prevention Order
+      - Administrative Law
+      - Appellate Tax Board
+      - Arbitration
+      - Business/Commercial
+      - Child Welfare/DCF/Adoption
+      - Civil Forfeiture
+      - Civil Motor Vehicle Infractions
+      - Civil Service
+      - Contract
+      - Domestic Relations/Family Law
+      - Employment Law/Discrimination
+      - Environmental, G. L. c.21E
+      - Extreme Risk Protection Order
+      - Equity
+      - Government/Municipality
+      - Impoundment
+      - Insurance Law
+      - Labor Law/Employment Relations Board
+      - Land Use
+      - Legal or Non-Medical Malpractice
+      - Medical Malpractice
+      - Mortgage/Foreclosure Law
+      - Prisoner's Rights and Claims
+      - Probate Law
+      - Real Estate
+      - Sex Offender Registry Board
+      - Sexually Dangerous Person Proceeding
+      - Tort
+      - Workers' Compensation
+      - Other
+  - Please specify: nature_of_case_other
+    required: False
+    show if:
+      variable: nature_of_case
+      is: Other
+---
+id: appeal_final_judgment
+question: |
+  Is this appeal from a final judgment (a judgment disposing of all parties and claims)?
+yesno: appeal_from_final_judgment
+---
+id: interlocutory_basis
+question: |
+  If no, what is the basis on which the interlocutory order is immediately appealable?
+fields:
+  - Basis (statute/rule/doctrine): interlocutory_appeal
+    datatype: area
+show if:
+  variable: appeal_from_final_judgment
+  is: False
+---
+id: date_of_judgment_or_interlocutory_order
+question: |
+  Enter the docketing date of the Judgment or Interlocutory Order appealed
+fields:
+- docketing date: date_of_judgment
+  datatype: date
+---
+id: date_of_notice_of_appeal
+question: |
+  Enter the date the notice of appeal was filed
+fields:
+- date filed: date_of_notice
+  datatype: date
+---
+id: motions_filed
+question: |
+  Please provide information regarding the following post-judgment motions that may affect the timeliness of the notice of the appeal
+subquestion: |
+fields:
+  - Was a Rule 50(b) motion filed?: motion_50b_filed
+    datatype: yesnoradio
+  - Date served (Rule 50(b)) (not date filed): motion_50b_date_served
+    datatype: date
+    show if:
+      variable: motion_50b_filed
+      is: True
+  - Was a Rule 52(b) motion filed?: motion_52b_filed
+    datatype: yesnoradio
+  - Date served (Rule 52(b)) (not date filed): motion_52b_date_served
+    datatype: date
+    show if:
+      variable: motion_52b_filed
+      is: True
+  - Was a Rule 59 motion filed?: motion_59_filed
+    datatype: yesnoradio
+  - Date served (Rule 59) (not date filed): motion_59_date_served
+    datatype: date
+    show if:
+      variable: motion_59_filed
+      is: True
+  - Was a Rule 60 motion filed?: motion_60_filed
+    datatype: yesnoradio
+  - Date served (Rule 60) (not date filed): motion_60_date_served
+    datatype: date
+    show if:
+      variable: motion_60_filed
+      is: True
+  - Was another motion filed that is not listed here?: other_filed
+    datatype: yesnoradio
+  - Please specify: other_specify
+    required: False
+    show if:
+      variable: other_filed
+      is: True
+  - Date other motion served (not date filed): other_date_served
+    datatype: date
+    show if:
+      variable: other_filed
+      is: True
+continue button field: motions_filed
+---
+id: issues_on_appeal
+question: |
+  Please provide a short statement of the anticipated issues on appeal
+subquestion: |
+  In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal. If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. (Note: This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.)
+fields: 
+  - anticipated issues: appellate_issues
+    datatype: area
+---
+id: related_appeals_same_parties
+question: |
+  Related appeals
+subquestion: |
+  Are there any pending, past, or anticipated future appeals or original appellate proceedings
+  that involve these parties or this case which have been entered in the Appeals Court or Supreme Judicial Court?
+yesno: related_appeals_parties
+---
+id: related_appeals_related_issues
+question: |
+  Related appeals (continued)
+subquestion: |
+  Do you know of any pending or anticipated appeals raising related issues?
+yesno: related_appeals_issues
+---
+id: related_appeals_details
+question: |
+  Related appeals details
+subquestion: |
+  If you answered yes to either question, provide the case name and docket number
+  and describe the related matter or issue.
+fields:
+  - Case name(s): related_appeals_case_name
+    datatype: area
+  - Docket number(s): related_appeals_docket
+    datatype: area
+  - Describe the related matter or issue: related_appeals_description
+    datatype: area
+continue button field: related_appeals_details
+---
+
+id: certificate_of_service_date
+question: |
+  Certificate of service date
+fields:
+  - Date of certificate of service: service_date
+    datatype: date
+---
+id: method of service 
+question: |
+  How will you deliver the required copy of the Massachusetts Appeals Court Civil Docketing Statement to the other parties in this appeal? 
+subquestion: |
+  You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal. 
+  
+  You should not provide a copy of your Affidavit of Indigency, if any, to anyone except the Appeals Court.  
+field: service_type
+dropdown:
+  - Email: email
+  - Mail: mail
+  - Hand delivery: hand 
+
+---
+id: parties to be served
+question: |
+  List the name and address (or email address) of each attorney or self-represented party that you will deliver copies of your Massachusetts Appeals Court Civil Docketing Statement to. 
+subquestion: |
+  If you are serving more than one attorney or party, you may list more than one.
+fields:
+  - no label: parties_to_be_served
+    datatype: area
+---
+
+id: signature fields
+question: |
+  Sign your name
+subquestion: |
+  By signing your name, you agree to
+  our terms and conditions.
+signature: user[0].signature
+---
+# Helper variable for templates + review screen: one "appellant name" to print everywhere
+code: |
+  if filer_role == "pro_se":
+    appellant_name_to_print = users[0].name.full()
+  else:
+    appellant_name_to_print = appellant_name
+---
+id: preview civil_docketing_statement_word
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.
+
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Edit answers" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_civil_docketing_statement_word'), label='Edit answers', color='info') }
+
+  Remember to come back to this window to continue and sign your form.
+continue button field: civil_docketing_statement_word_preview_question
+---
+code: |
+  signature_fields = []
+---
+code: |
+  [user.address.address for user in users.complete_elements()]
+  addresses_to_search = [user.address for user in users.complete_elements()]
+---
+id: civil docketing statement word review screen
+event: review_civil_docketing_statement_word
+question: |
+  Review your answers
+review:
+  - Edit: filer_role
+    button: |
+      **Filer role**:
+      ${ filer_role }
+
+  - Edit: users.revisit
+    button: |
+      **Filer name (attorney or appellant)**:
+      ${ users[0].name.full() }
+
+  - Edit: appellant_name
+    show if: filer_role == "attorney"
+    button: |
+      **Appellant name**:
+      ${ appellant_name }
+
+  - Edit: attorney_bbo
+    show if: filer_role == "attorney"
+    button: |
+      **Attorney BBO number**:
+      ${ attorney_bbo }
+
+  - Edit: appeal_docket_number
+    button: |
+      **Appeal docket number**:
+      ${ appeal_docket_number }
+
+  - Edit: plaintiff_caption
+    button: |
+      **Plaintiff caption**:
+      ${ plaintiff_caption }
+
+  - Edit: defendant_caption
+    button: |
+      **Defendant caption**:
+      ${ defendant_caption }
+---
+continue button field: users.revisit
+question: |
+  Edit filer name
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+---
+id: download civil_docketing_statement_word
+event: civil_docketing_statement_word_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+
+  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_civil_docketing_statement_word'), label='Edit answers', color='info') }
+
+  ${ al_user_bundle.download_list_html() }
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
+progress: 100
+---
+---
+objects:
+  - service_recipients: ALPeopleList.using(minimum_number=1)
+---
+---
+objects:
+  - civil_docketing_statement_word_Post_interview_instructions: ALDocument.using(title="Instructions", filename="civil_docketing_statement_word_next_steps.docx", enabled=True, has_addendum=False)
+  - civil_docketing_statement_word_attachment: ALDocument.using(title="Civil docketing statement word", filename="civil_docketing_statement_word", enabled=True, has_addendum=False)
+---
+
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[civil_docketing_statement_word_Post_interview_instructions, civil_docketing_statement_word_attachment], filename="civil_docketing_statement_word", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[civil_docketing_statement_word_attachment], filename="civil_docketing_statement_word", title="All forms to deliver to court", enabled=True)
+---
+
+attachment:
+  name: Post-interview-Instructions
+  filename: civil_docketing_statement_word_next_steps
+  docx template file: civil_docketing_statement_word_next_steps.docx
+  variable name: civil_docketing_statement_word_Post_interview_instructions[i]
+  skip undefined: True
+  tagged pdf: True
+---
+attachment:
+  name: civil docketing statement word
+  filename: civil_docketing_statement_word
+  variable name: civil_docketing_statement_word_attachment[i]
+  skip undefined: True
+  docx template file: civil_docketing_statement_word.docx
+  tagged pdf: True
