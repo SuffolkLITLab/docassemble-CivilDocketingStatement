@@ -15,7 +15,7 @@ authors = [
 dependencies = [
     "docassemble.ALAnyState @ git+https://github.com/SuffolkLITLab/docassemble-ALAnyState.git@main",
     "docassemble.ALMassachusetts>=0.1.2",
-    "docassemble.AssemblyLine>=4.3.0",
+    "docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main",
     "docassemble.MassAccess @ git+https://github.com/SuffolkLITLab/docassemble-MassAccess.git@main",
 ]
 license = "MIT"
