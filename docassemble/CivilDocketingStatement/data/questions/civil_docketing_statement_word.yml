@@ -80,7 +80,7 @@ id: interview_order_civil_docketing_statement_word
 code: |
   allowed_courts = []
   nav.set_section("review_civil_docketing_statement_word")
-  
+  users.there_is_another = False
   # user information
   filer_role
   users[0].name.first
@@ -223,7 +223,7 @@ show if:
 ---
 id: attorney_bbo_screen
 question: |
-  Attorney information
+  Please enter your BBO number
 fields:
   - BBO number: attorney_bbo
 show if:
@@ -249,7 +249,7 @@ fields:
 
 id: lower_docket_number
 question: |
-  Please enter the lower court docket number. 
+  Please enter the lower court docket number from the case you are appealing. 
 fields:
   - "Lower Court Docket Number": lower_docket_number
 ---
@@ -329,21 +329,16 @@ yesno: record_impounded
 id: impoundment_documents
 question: |
   Please list which document(s) are impounded or partially impounded.
-
 subquestion: |
-
   For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
 fields:
   - Documents: impoundment_documents 
     datatype: area
-  
 ---
 id: impoundment_details_screen
 question: |
   Please select the authority for why the document(s) is impounded. 
-
 subquestion: |
-
   For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
 
 fields:
@@ -534,7 +529,7 @@ question: |
 subquestion: |
   In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal. If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. 
   
-  This should be a **short** explaination. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
+  This should be a **short** explanation. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
 
 fields: 
   - anticipated issues: appellate_issues
@@ -560,7 +555,7 @@ question: |
   Related appeals details
 subquestion: |
   If you answered yes to either question, provide the case name and docket number
-  and describe the related matter or issue.
+  and describe the related matter or issue.  
 fields:
   - Case name(s): related_appeals_case_name
     datatype: area
