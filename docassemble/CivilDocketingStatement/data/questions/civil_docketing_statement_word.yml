@@ -9,11 +9,11 @@ metadata:
   title: >-
     Civil docketing statement word
   short title: >-
-    Civil docketing statement
+    Civil Docketing Statement
   description: |-
     This interview helps someone in Massachusetts get a Civil docketing statement word.
   can_I_use_this_form: |
-    If you are a _____________, you can use this interview to ____________.
+    If you are an appellant, you can use this interview to ____________.
   before_you_start: |
     This interview will help you get a Civil docketing statement word.
 
@@ -116,6 +116,7 @@ code: |
   # impoundement info  
   record_impounded
   if record_impounded:
+    impoundment_documents
     impoundment_details
 
   # case and appeal information
@@ -164,24 +165,27 @@ code: |
 id: Civil_docketing_statement_word
 continue button field: civil_docketing_statement_word_intro
 question: |
-  Civil docketing statement word
+  Civil Docketing Statement 
 subquestion: |
-  This interview will help you get a Civil docketing statement word.
+  This interview will help you get a Civil Docketing Statement.
 
-  Before you get started, please gather:
+    This page will help you to fill out a Civil Docketing Statement to the Appeals Court. If you are appealing a judgment of your case, you should submit this form within 14 days of the Notice of Entry of the Appeal.
+  
+  It helps to have court information about your {trial court} case being appealed with you now, as you complete this form.
 
-  1.
-  2.
-  3.
+  Each {appellant} or {cross-appellant}, other than a self-represented litigant who is incarcerated, is required to submit the attached docketing statement within fourteen days of issuance of the notice of entry of the appeal. See M.A.C. Rule 10.0.
 
-  When you are finished, you will need to:
+  Most people take about 30 minutes to complete this interview.
+terms:
+  trial court: |
+    the court that made the decision you are appealing
+  appellant: |
+    The party of the trial court case who is appealing the trial court's decision
+  cross-appellant: |
+    The opposing party of the appellant, that has also decided to appeal the trial court's decision for different reasons than the original appeal.
+  starting the appeal: |
+    "within fourteen (14) days of issuance of the notice of entry of the appeal"
 
-  1.
-  2.
-
-  If you are a _____________, you can use this interview to ____________.
-
-  Most people take about 10 minutes to complete this interview.
 ---
 id: filer_role_screen
 question: |
@@ -247,11 +251,11 @@ id: lower_docket_number
 question: |
   Please enter the lower court docket number. 
 fields:
-  - "lower court docket number": lower_docket_number
+  - "Lower Court Docket Number": lower_docket_number
 ---
 id: filer_contact
 question: |
-  Your contact information
+  Please Enter Your Contact Information 
 fields:
   - Address: users[0].address.address
   - City: users[0].address.city
@@ -259,6 +263,7 @@ fields:
     default: MA
   - Zip: users[0].address.zip
   - Telephone: users[0].phone_number
+  - Email: users[0].email
 ---
 ---
 id: info_judge1
@@ -319,17 +324,79 @@ id: impoundment_checkbox
 question: |
   Was the case or any information in the record designated as impounded in the lower court?
 yesno: record_impounded
+
+---
+id: impoundment_documents
+question: |
+  Please list which document(s) are impounded or partially impounded.
+
+subquestion: |
+
+  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
+fields:
+  - Documents: impoundment_documents 
+    datatype: area
+  
 ---
 id: impoundment_details_screen
 question: |
-  Impoundment details
+  Please select the authority for why the document(s) is impounded. 
+
+subquestion: |
+
+  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
+
 fields:
-  - Impounded documents and authority: impoundment_details
-    datatype: area
+  - Impoundment authority: impoundment_details
+    datatype: checkboxes
+    choices: 
+      - Abortion consent forms and materials. G. L. c. 112, § 12S. 
+      - Abuse Prevention Orders. G. L. c. 209A, § 8.
+      - Address Confidentiality Program Affidavits. S.J.C. Rule 1:20; G. L. c. 9A; 950 Code Mass. Regs. § 130. 
+      - Adoptions. G. L. c. 210, § 5C.
+      - Affidavits of Indigency. By Order of the S.J.C. on the Affidavit of Indigency form.
+      - Alcohol and drug abuse program and treatment records. 42 U.S.C. § 1175, 290 dd-3. 
+      - Appeals from the Sex Offender Registry Board. G. L. c. 6, § 178M.
+      - Board of Bar Overseer proceedings. S.J.C. Rule 4:01, § 20(1).
+      - Child in Need of Services/Child Requiring Assistance. G. L. c. 119, § 39E-39I. 
+      - Child Protection Orders. G. L. c. 119, § 38.
+      - Commission on Judicial Conduct Proceedings. G. L. c. 211C, § 6.
+      - Court Order of Impoundment
+      - Delinquency Proceedings. G. L. c. 119, § 60A.
+      - Department of Workforce Development Hearings (unemployment hearings). G. L. c. 151A, § 46. 
+      - Financial statements. Supplemental Probate and Family Court Rule 401(d).
+      - Grand Jury minutes or documents. G. L. c. 268, § 13D(e).
+      - Guardian ad Litem Reports. Probate and Family Court Standing Order 2-08. 
+      - Harassment Prevention Orders. G. L. c. 258E, § 10.
+      - Inquest Report and Transcript. G. L. c. 38, § 10; In re Globe Newspaper Co., Inc., 461 Mass. 113 (2011). 
+      - Juror Questionnaires. G.L. c. 234A, §§ 23, 33.
+      - Juvenile Trials. G. L. c. 119, § 65. 
+      - Mediator Records. G. L. c. 233, § 23C.
+      - Medical Certificates and Clinical Team Reports. Probate and Family Court Standing Order 5-08. 
+      - Medical, Health and Hospital Records. G. L. c. 111, § 70, § 70E(b).
+      - Mental Health Reports. G. L. c. 123, §§ 1-18, 35.
+      - Medical Peer Review Committee. G. L. c. 111, § 204. 
+      - Paternity actions. G. L. c. 209C, § 13.
+      - Pending or Denied Criminal Complaint Applications. District Court Standards of Judicial Practice, The Complaint Procedure §§ 3:15 and 5:02 (rev. 2008).
+      - Personal Medical Information. Probate and Family Court Standing Order 1-09, Article V of G.L. c. 190B. 
+      - Photographs of unsuspecting nude person. G. L. c. 272, § 105(g).
+      - Presentence Probation Reports. Mass. R. Crim. P. 28(d)(3); Commonwealth v. Martin, 355 Mass. 296 (1969) 
+      - Probation Records. G. L. c. 276, § 100.
+      - Psychotherapist Treatment Records. G.L. c. 112, § 129A, except as provided by G.L. c. 233, § 20(b).
+      - Qualified Domestic Relation Orders. Probate and Family Court Standing Order 3-08.
+      - Records deposited with the clerk-magistrate as potential exhibits. See generally G. L. c. 233, § 79J; G.L. c. 233, § 79; Commonwealth v. Dwyer, 448 Mass. 122, 148-149 (2006).
+      - Rights afforded victims, witnesses, or family members. G. L. c. 258B, § 3(h). 
+      - School records. G. L. c. 71, § 34H; G. L. c. 208, § 31.
+      - Search Warrant, application, or affidavit, before return. G. L. c. 276, § 2B. 
+      - Social Worker records. G. L. c. 112, § 135A.
+      - Trade secrets and other confidential matters in connection with discovery. Mass. R. Civ. P. 26(c)(7).
+      - Victim's name in Sexual Assault Record. G. L c. 265, § 24C; G. L. c. 264, §§ 13B, 13B ½, 13B ¾; G. L. c. 265, §§ 22, 23, 23A, 23B; G. L. c. 265, §§ 22A, 22B, 22C; G. L. c. 265, § 24; G. L. c. 265, § 24B.
+      - Victim program locations. G. L. c. 233, §§ 20J and 20K. 
+
 ---
 id: Nature of the Case
 question: |
-  Select the most appropriate description of the case 
+  From the dropdown menu, please select the case nature that most closely describes the case being appealed.
 fields:
   - no label: nature_of_case
     choices:
@@ -372,12 +439,27 @@ fields:
 ---
 id: appeal_final_judgment
 question: |
-  Is this appeal from a final judgment (a judgment disposing of all parties and claims)?
+  Is this an appeal of a final judgment (a judgment disposing of all parties and claims)?
 yesno: appeal_from_final_judgment
 ---
 id: interlocutory_basis
 question: |
-  If no, what is the basis on which the interlocutory order is immediately appealable?
+  
+  Please list the law, statute, court rule, or legal doctrine that allows you to file an appeal before the case is final, for example, G.L. c. 231, § 118 (first paragraph) or the doctrine of present execution.
+
+subquestion: |
+  G.L. c. 231, § 118 (first paragraph) is a Massachusetts statute that allows a party to seek review of certain interlocutory (non-final) orders issued by a trial court judge.
+
+  Here are common examples of orders that may qualify under the doctrine of present execution in Massachusetts (meaning they can sometimes be appealed immediately, even though the case is not over):
+
+  • Denial of a motion to dismiss based on sovereign immunity
+  • Denial of qualified immunity for a public official
+  • Denial of absolute immunity (such as prosecutorial immunity)
+  • Orders compelling disclosure of privileged information (for example, attorney–client privilege)
+  • Orders denying a motion to dismiss based on double jeopardy
+  • Certain rulings affecting constitutional rights that would be lost if review waited until final judgment
+  • Orders denying protection under the anti-SLAPP statute
+  • Orders denying a motion to dismiss for lack of personal jurisdiction (in some circumstances) 
 fields:
   - Basis (statute/rule/doctrine): interlocutory_appeal
     datatype: area
@@ -387,16 +469,16 @@ show if:
 ---
 id: date_of_judgment_or_interlocutory_order
 question: |
-  Enter the docketing date of the Judgment or Interlocutory Order appealed
+   Please provide the date that the judgment or order from which you are appealing was entered on the docket of the lower court
 fields:
-- docketing date: date_of_judgment
+- Docketing Date: date_of_judgment
   datatype: date
 ---
 id: date_of_notice_of_appeal
 question: |
   Enter the date the notice of appeal was filed
 fields:
-- date filed: date_of_notice
+- Date Filed: date_of_notice
   datatype: date
 ---
 id: motions_filed
@@ -450,7 +532,10 @@ id: issues_on_appeal
 question: |
   Please provide a short statement of the anticipated issues on appeal
 subquestion: |
-  In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal. If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. (Note: This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.)
+  In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal. If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. 
+  
+  This should be a **short** explaination. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
+
 fields: 
   - anticipated issues: appellate_issues
     datatype: area
