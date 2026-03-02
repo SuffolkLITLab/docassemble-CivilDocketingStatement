@@ -46,7 +46,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.CivilDocketingStatement',
       version='1.0',
       description=('Civil docketing statement word'),
-      long_description='# docassemble.CivilDocketingStatementWord\r\n\r\nCivil docketing statement word\r\n\r\n## Author\r\n\r\nauthor@example.com\r\n\r\n',
+      long_description='# docassemble.CivilDocketingStatement\r\n\r\nCivil Docketing Statement for the Massachusetts Appeals Court\r\n\r\n## Author\r\n\r\nkathryn.lynch@su.suffolk.edu\r\n\r\n\r\n\r\n',
       long_description_content_type='text/markdown',
       author='',
       author_email='kathryn.lynch@su.suffolk.edu',

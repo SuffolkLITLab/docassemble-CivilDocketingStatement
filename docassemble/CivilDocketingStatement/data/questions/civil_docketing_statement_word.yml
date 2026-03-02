@@ -81,6 +81,7 @@ code: |
   allowed_courts = []
   nav.set_section("review_civil_docketing_statement_word")
   users.there_is_another = False
+  
   # user information
   filer_role
   users[0].name.first
@@ -232,11 +233,14 @@ show if:
 ---
 id: case_info_screen
 question: |
-  Case information
+  Case Information
+subquestion: |
+  Please enter the docket number provided by the appeals court. 
+  Additionally, please enter the Plaintiff and Defendant's names as they appear on your court documents. 
 fields:
   - "Appeal docket number": appeal_docket_number
-  - "Plaintiff caption": plaintiff_caption
-  - "Defendant caption": defendant_caption
+  - "Plaintiff name": plaintiff_caption
+  - "Defendant name": defendant_caption
 ---
 id: court_department
 question: |
@@ -264,7 +268,6 @@ fields:
   - Zip: users[0].address.zip
   - Telephone: users[0].phone_number
   - Email: users[0].email
----
 ---
 id: info_judge1
 question: |
@@ -387,6 +390,7 @@ fields:
       - Trade secrets and other confidential matters in connection with discovery. Mass. R. Civ. P. 26(c)(7).
       - Victim's name in Sexual Assault Record. G. L c. 265, § 24C; G. L. c. 264, §§ 13B, 13B ½, 13B ¾; G. L. c. 265, §§ 22, 23, 23A, 23B; G. L. c. 265, §§ 22A, 22B, 22C; G. L. c. 265, § 24; G. L. c. 265, § 24B.
       - Victim program locations. G. L. c. 233, §§ 20J and 20K. 
+    none of the above: False
 
 ---
 id: Nature of the Case
@@ -416,6 +420,7 @@ fields:
       - Labor Law/Employment Relations Board
       - Land Use
       - Legal or Non-Medical Malpractice
+      - Landlord-Tenant Dispute
       - Medical Malpractice
       - Mortgage/Foreclosure Law
       - Prisoner's Rights and Claims
@@ -456,7 +461,7 @@ subquestion: |
   • Orders denying protection under the anti-SLAPP statute
   • Orders denying a motion to dismiss for lack of personal jurisdiction (in some circumstances) 
 fields:
-  - Basis (statute/rule/doctrine): interlocutory_appeal
+  - Basis of Appeal (statute/rule/doctrine): interlocutory_appeal
     datatype: area
 show if:
   variable: appeal_from_final_judgment
@@ -478,8 +483,15 @@ fields:
 ---
 id: motions_filed
 question: |
-  Please provide information regarding the following post-judgment motions that may affect the timeliness of the notice of the appeal
+  Post-judgment Motions 
 subquestion: |
+  Please provide information regarding the following post-judgment motions that may affect the timeliness of the notice of the appeal
+
+  • Motion for Judgment Notwithstanding the Verdict (Rule 50(b))
+  • Motion to Amend or Make Additional Findings (Rule 52(b))
+  • Motion to Alter or Amend Judgment (Rule 59)
+  • Motion for Relief from Judgment (Rule 60)
+  
 fields:
   - Was a Rule 50(b) motion filed?: motion_50b_filed
     datatype: yesnoradio
@@ -568,7 +580,7 @@ continue button field: related_appeals_details
 
 id: certificate_of_service_date
 question: |
-  Certificate of service date
+  Please enter the date that you served/ will serve this document to each attorney or self-represented party in this appeal.
 fields:
   - Date of certificate of service: service_date
     datatype: date
@@ -577,9 +589,15 @@ id: method of service
 question: |
   How will you deliver the required copy of the Massachusetts Appeals Court Civil Docketing Statement to the other parties in this appeal? 
 subquestion: |
+
+  All papers filed in the Appeals Court must be sent to all other parties to the case, or their attorney(s), and filed along with a Certificate of Service stating that you completed this step.  This is called "service," and can be done by email or regular mail.  
+  
+  If the Certificate of Service is not completed, this filing will not be accepted.
+
   You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal. 
   
   You should not provide a copy of your Affidavit of Indigency, if any, to anyone except the Appeals Court.  
+
 field: service_type
 dropdown:
   - Email: email
@@ -589,8 +607,10 @@ dropdown:
 ---
 id: parties to be served
 question: |
-  List the name and address (or email address) of each attorney or self-represented party that you will deliver copies of your Massachusetts Appeals Court Civil Docketing Statement to. 
+  Service Information
 subquestion: |
+  List the name and address (or email address) of each attorney or self-represented party that you will deliver copies of your Massachusetts Appeals Court Civil Docketing Statement to.
+  
   If you are serving more than one attorney or party, you may list more than one.
 fields:
   - no label: parties_to_be_served
