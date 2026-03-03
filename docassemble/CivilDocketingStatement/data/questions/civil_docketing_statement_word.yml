@@ -117,6 +117,7 @@ code: |
   # impoundement info  
   record_impounded
   if record_impounded:
+    fully_impounded 
     impoundment_documents
     impoundment_details
 
@@ -326,14 +327,19 @@ continue button field: info_judge3
 id: impoundment_checkbox
 question: |
   Was the case or any information in the record designated as impounded in the lower court?
+subquestion: |
+  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
+  
 yesno: record_impounded
-
+---
+id: fully_impounded
+question: |
+  Was the entire case fully impounded? 
+yesno: fully_impounded
 ---
 id: impoundment_documents
 question: |
-  Please list which document(s) are impounded or partially impounded.
-subquestion: |
-  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
+  Please list which document(s) are impounded or partially impounded.  
 fields:
   - Documents: impoundment_documents 
     datatype: area
@@ -341,9 +347,6 @@ fields:
 id: impoundment_details_screen
 question: |
   Please select the authority for why the document(s) is impounded. 
-subquestion: |
-  For the purposes of this form, the term "impounded" includes any portion of the record that is impounded, sealed, deemed confidential, or excluded from public access by statute, court order, rule, or standing order.
-
 fields:
   - Impoundment authority: impoundment_details
     datatype: checkboxes
@@ -476,7 +479,7 @@ fields:
 ---
 id: date_of_notice_of_appeal
 question: |
-  Enter the date the notice of appeal was filed
+  Enter the date the Notice of Appeal was filed
 fields:
 - Date Filed: date_of_notice
   datatype: date
@@ -489,7 +492,7 @@ subquestion: |
 
   • Motion for Judgment Notwithstanding the Verdict (Rule 50(b))
   • Motion to Amend or Make Additional Findings (Rule 52(b))
-  • Motion to Alter or Amend Judgment (Rule 59)
+  • Motion to Alter or Amend Judgment or Motion for New Trial (Rule 59)
   • Motion for Relief from Judgment (Rule 60)
   
 fields:
@@ -541,11 +544,12 @@ question: |
 subquestion: |
   In cases other than child welfare appeals, please provide a short statement of the anticipated issues on appeal. If the appellate issue involves the interpretation of a particular statute or regulation, please provide a citation to that statute or regulation. 
   
-  This should be a **short** explanation. This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief.
+  This statement is for informational purposes only and failure to raise an issue here will not preclude an appellant from raising the issue in its brief. This should be a **short** explanation and you will only be able to type 771 characters.
 
 fields: 
   - anticipated issues: appellate_issues
     datatype: area
+    maxlength: 771
 ---
 id: related_appeals_same_parties
 question: |
@@ -600,7 +604,7 @@ subquestion: |
 
 field: service_type
 dropdown:
-  - Email: email
+  - Email/E-File: email
   - Mail: mail
   - Hand delivery: hand 
 
