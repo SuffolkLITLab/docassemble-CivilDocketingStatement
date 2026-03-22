@@ -175,15 +175,14 @@ continue button field: civil_docketing_statement_intro
 question: |
   Civil Docketing Statement 
 subquestion: |
-  This interview will help you get a Civil Docketing Statement.
 
     This page will help you to fill out a Civil Docketing Statement to the Appeals Court. If you are appealing a judgment of your case, you should submit this form within 14 days of the Notice of Entry of the Appeal.
   
-  It helps to have court information about your {trial court} case being appealed with you now, as you complete this form.
+    It helps to have court information about your {trial court} case being appealed with you now, as you complete this form.
 
-  Each {appellant} or {cross-appellant}, other than a self-represented litigant who is incarcerated, is required to submit the attached docketing statement within fourteen days of issuance of the notice of entry of the appeal. See M.A.C. Rule 10.0.
+    Each {appellant} or {cross-appellant}, other than a self-represented litigant who is incarcerated, is required to submit the attached docketing statement within fourteen days of issuance of the notice of entry of the appeal. See M.A.C. Rule 10.0.
 
-  Most people take about 30 minutes to complete this interview.
+    Most people take about 30 minutes to complete this interview.
 terms:
   trial court: |
     the court that made the decision you are appealing
@@ -484,7 +483,7 @@ subquestion: |
   
   A **final judgment** means the court has finished the case. The judge has ruled on every claim and every party, so nothing is left for the trial court to decide.
 fields: 
-  - Are you appealing the final decision in the case?: appeal_from_final_judgment
+  - Are you appealing the final judgment in the case?: appeal_from_final_judgment
     datatype: yesnoradio
   - note: |
       Enter the date the final judgment was put on the court docket
@@ -504,7 +503,7 @@ fields:
     show if: 
       variable: appeal_from_final_judgment
       is: False   
-  - Date of judgment: date_of_judgment
+  - Date of appealable order: date_of_judgment
     datatype: date
     show if: 
       variable: appeal_from_final_judgment
@@ -525,7 +524,7 @@ terms:
   G.L. c. 231, § 118: |
     G.L. c. 231, § 118 (first paragraph) is a Massachusetts statute that allows a party to seek review of certain interlocutory (non-final) orders issued by a trial court judge.
   doctrine of present execution: |
-    The doctrine of present execution is a rule in Massachusetts that allows someone to appeal certain interlocutory orders immediately, even though the case is not finished.
+    The doctrine of present execution is a principle in Massachusetts that allows someone to appeal certain interlocutory orders immediately, even though the case is not finished.
     
 ---
 id: date_of_notice_of_appeal
@@ -543,10 +542,10 @@ question: |
 subquestion: |
    Provide information regarding the following post-judgment motions that may affect the timeliness of the notice of the appeal
 
-    • Motion for Judgment Notwithstanding the Verdict (Rule 50(b)) <br>
-    • Motion to Amend or Make Additional Findings (Rule 52(b)) <br>
-    • Motion to Alter or Amend Judgment or Motion for New Trial (Rule 59) <br>
-    • Motion for Relief from Judgment (Rule 60) <br>
+    • Motion for Judgment Notwithstanding the Verdict [(Rule 50(b))](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-50-motion-for-a-directed-verdict-and-for-judgment-notwithstanding-the-verdict#-b-motion-for-judgment-notwithstanding-the-verdict) <br>
+    • Motion to Amend or Make Additional Findings [(Rule 52(b))](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-52-findings-by-the-court#-b-courts-other-than-district-court-amendment) <br>
+    • Motion to Alter or Amend Judgment or Motion for New Trial [(Rule 59)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-59-new-trials-amendment-of-judgments) <br>
+    • Motion for Relief from Judgment [(Rule 60)](https://www.mass.gov/rules-of-civil-procedure/civil-procedure-rule-60-relief-from-judgment-or-order) <br>
   
 fields:
   - Was a Rule 50(b) motion filed?: motion_50b_filed
