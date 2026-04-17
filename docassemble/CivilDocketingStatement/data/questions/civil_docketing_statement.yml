@@ -814,6 +814,7 @@ attachment:
   variable name: civil_docketing_statement_Post_interview_instructions[i]
   skip undefined: True
   tagged pdf: True
+  pdfa: True
 ---
 attachment:
   name: civil docketing statement
@@ -822,3 +823,4 @@ attachment:
   skip undefined: True
   docx template file: civil_docketing_statement.docx
   tagged pdf: True
+  pdfa: True
