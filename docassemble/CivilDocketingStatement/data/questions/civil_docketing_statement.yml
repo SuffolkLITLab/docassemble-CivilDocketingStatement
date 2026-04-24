@@ -241,12 +241,17 @@ id: case_info_screen
 question: |
   Docket information
 subquestion: |
-    Enter the Appeals court docket number and the docket number from the lower court. 
+    Enter the {Appeals Court docket number} and the {lower court docket number}. 
 
     Note: these two are different  
 fields:
   - Appeals docket number: appeal_docket_number
   - Lower court docket number: lower_docket_number
+terms: 
+  Appeals Court docket number: |
+    This is the new docket number you received after filing your Notice of Entry of Appeal
+  lower court docket number: |
+    This is your old docket number from the previous court where your case was held
 ---
 id: case name 
 question: |
@@ -356,6 +361,8 @@ subquestion: |
   Impoundment means that a document or part of a court record is kept confidential and not available to the public. The court restricts access to protect sensitive or private information.
 
   For this form, impounded documents include any part of the record that is impounded, sealed, or confidential by statute, court order, rule, or standing order. 
+
+  Refer to your previous court documents to determine if your case or any documents are impounded.
 fields:  
   - Is any part of the record impounded?: record_impounded
     datatype: yesnoradio
@@ -365,16 +372,16 @@ fields:
     show if:
       variable: record_impounded
       is: True
-  - note: |
-      If the entire case is impounded, type "entire case" below 
-    show if: 
-      variable: record_impounded
-      is: True
+  # - note: |
+  #     If the entire case is impounded, type "entire case" below 
+  #   show if: 
+  #     variable: record_impounded
+  #     is: True
   - List the documents that are impounded: impoundment_documents
     datatype: area
     show if: 
-      variable: record_impounded
-      is: True
+      variable: fully_impounded
+      is: False
 ---
 id: impoundment_details_screen
 question: |
@@ -654,7 +661,7 @@ subquestion: |
 
   You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal. 
   
-  You should not provide a copy of your Affidavit of Indigency, if any, to anyone except the Appeals Court.  
+  You should not provide a copy of the Affidavit of Indigency, if any, to anyone except the Appeals Court.  
 
   **How will you deliver the required copy of the Massachusetts Appeals Court Civil Docketing Statement to the other parties in this appeal?**
 
@@ -777,9 +784,9 @@ confirm: True
 id: download civil_docketing_statement
 event: civil_docketing_statement_download
 question: |
-  All done
+  Almost Done!
 subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
+  Thank you ${users}. Your form is ready to review, download, and file.
 
   View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
 
