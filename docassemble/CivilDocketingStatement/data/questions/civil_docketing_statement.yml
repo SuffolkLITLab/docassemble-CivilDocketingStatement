@@ -146,6 +146,7 @@ code: |
   service_date
   
   nav.set_section("signature")
+  civil_docketing_statement_preview_question
   # actual signature 
   users[0].signature
   
