@@ -86,8 +86,6 @@ comment: |
 id: interview_order_civil_docketing_statement
 code: |
   allowed_courts = []
-  nav.set_section("review_civil_docketing_statement")
-
   nav.set_section("introduction")
   al_intro_screen
   civil_docketing_statement_intro
@@ -236,6 +234,9 @@ fields:
 show if:
   variable: filer_role
   is: attorney
+validation code: |
+  if not (attorney_bbo.isdigit() and len(attorney_bbo) == 6):
+    validation_error("Enter a valid 6-digit BBO number.", field="attorney_bbo")
 ---
 id: case_info_screen
 question: |
@@ -305,6 +306,10 @@ fields:
   - Zip: users[0].address.zip
   - Telephone: users[0].phone_number
   - Email: users[0].email
+    datatype: email
+validation code: |
+  if not phone_number_is_valid(users[0].phone_number):
+    validation_error("Enter a valid phone number.", field="users[0].phone_number")
 ---
 id: info_judge1
 question: |
@@ -714,7 +719,7 @@ question: |
 subquestion: |
   By signing your name, you agree to
   our terms and conditions.
-signature: user[0].signature
+signature: users[0].signature
 ---
 # # Helper variable for templates + review screen: one "appellant name" to print everywhere
 # code: |
@@ -740,10 +745,6 @@ subquestion: |
 continue button field: civil_docketing_statement_preview_question
 ---
 code: |
-  signature_fields = []
----
-code: |
-  [user.address.address for user in users.complete_elements()]
   addresses_to_search = [user.address for user in users.complete_elements()]
 ---
 id: civil docketing statement word review screen
@@ -788,21 +789,28 @@ review:
       **Defendant caption**:
       ${ defendant_caption }
 ---
+id: edit filer name
 continue button field: users.revisit
 question: |
-  Edit filer name
+  Edit your information
 subquestion: |
   ${ users.table }
-
-  ${ users.add_action() }
 ---
 table: users.table
 rows: users
 columns:
   - Name: |
       row_item.name.full() if defined("row_item.name.first") else ""
+  - Address: |
+      row_item.address.on_one_line() if defined("row_item.address.address") else ""
+  - Phone: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
 edit:
   - name.first
+  - name.last
+  - address.address
+  - phone_number
+  - email
 confirm: True
 ---
 id: download civil_docketing_statement
