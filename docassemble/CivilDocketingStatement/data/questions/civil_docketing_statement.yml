@@ -27,6 +27,8 @@ metadata:
 
     1.
     2.
+  landing_page_url: >-
+    https://courtformsonline.org/
   maturity: production
   estimated_completion_minutes: 10
   estimated_completion_delta: 5
@@ -118,13 +120,13 @@ code: |
     info_judge2
     more_judges_2
   else:
-    judge2 = judge2_role = "N/A"
-    judge3 = judge3_role = "N/A"
+    judge2 = judge2_role = ""
+    judge3 = judge3_role = ""
 
   if has_judge2 and has_judge3:
     info_judge3
   else:
-    judge3 = judge3_role = "N/A"
+    judge3 = judge3_role = ""
 
   nav.set_section("impoundment") 
   record_impounded
@@ -197,7 +199,7 @@ id: filer_role_screen
 question: |
   Who is filing this Civil Docketing Statement?
 fields:
-  - no label: filer_role
+  - Filer role: filer_role
     input type: radio
     choices:
       - I am an attorney representing the appellant: attorney
@@ -235,9 +237,6 @@ fields:
 show if:
   variable: filer_role
   is: attorney
-validation code: |
-  if not (attorney_bbo.isdigit() and len(attorney_bbo) == 6):
-    validation_error("Enter a valid 6-digit BBO number.", field="attorney_bbo")
 ---
 id: case_info_screen
 question: |
@@ -271,7 +270,7 @@ id: court_agency
 question: |
   Is the decision you are appealing from a {court} or an {agency}? 
 fields: 
-  - no label: inst_type
+  - Court or agency?: inst_type
     datatype: radio
     choices:
       - Court
@@ -336,7 +335,7 @@ id: more_judges_1
 question: |
   Is there another judge whose order or judgment you are appealing?
 fields:
-  - no label: has_judge2
+  - Another judge?: has_judge2
     datatype: yesnoradio   
 continue button field: more_judges_1
 ---
@@ -362,7 +361,7 @@ id: more_judges_2
 question: |
   Is there another judge whose order or judgment you are appealing?
 fields:
-  - no label: has_judge3
+  - Another judge?: has_judge3
     datatype: yesnoradio   
 continue button field: more_judges_2
 ---
@@ -471,7 +470,7 @@ question: |
 subquestion: |
   Select the option that describes what the case was about. If it is not listed, choose "other"
 fields:
-  - no label: nature_of_case
+  - Nature of the case: nature_of_case
     choices:
       - Abuse Prevention Order
       - Administrative Law
@@ -694,7 +693,7 @@ subquestion: |
   **How will you deliver the required copy of the Massachusetts Appeals Court Civil Docketing Statement to the other parties in this appeal?**
 
 fields: 
-  - no label: service_type
+  - Method of service: service_type
     datatype: radio
     choices:
       - Email/E-File: email
@@ -710,7 +709,7 @@ subquestion: |
   
   If you are serving more than one attorney or party, you may list more than one.
 fields:
-  - no label: parties_to_be_served
+  - Parties to be served: parties_to_be_served
     datatype: area
 ---
 
@@ -745,18 +744,17 @@ subquestion: |
   Remember to come back to this window to continue and sign your form.
 continue button field: civil_docketing_statement_preview_question
 ---
-code: |
-  addresses_to_search = [user.address for user in users.complete_elements()]
----
 id: civil docketing statement word review screen
 event: review_all_sections
 question: |
   Review your answers
 review:
+  - note: |
+      ## User information
   - Edit: filer_role
     button: |
       **Filer role**:
-      ${ filer_role }
+      ${ {"attorney": "Attorney", "pro_se": "Self-represented (pro se)"}.get(filer_role, filer_role) }
 
   - Edit: users.revisit
     button: |
@@ -790,6 +788,8 @@ review:
       **Client name**:
       ${ client.name.full() }
 
+  - note: |
+      ## Case information
   - Edit: appeal_docket_number
     button: |
       **Appeal docket number**:
@@ -832,23 +832,27 @@ review:
       **Nature of case**:
       ${ nature_of_case_other if nature_of_case == "Other" else nature_of_case }
 
+  - note: |
+      ## Judge information
   - Edit: judge1
     button: |
       **Judge 1**:
-      ${ judge1 } — ${ judge1_role }
+      ${ judge1 } - ${ judge1_role }
 
   - Edit: judge2
     show if: has_judge2
     button: |
       **Judge 2**:
-      ${ judge2 } — ${ judge2_role }
+      ${ judge2 } - ${ judge2_role }
 
   - Edit: judge3
     show if: has_judge2 and has_judge3
     button: |
       **Judge 3**:
-      ${ judge3 } — ${ judge3_role }
+      ${ judge3 } - ${ judge3_role }
 
+  - note: |
+      ## Impoundment details
   - Edit: record_impounded
     button: |
       **Record impounded?**:
@@ -870,8 +874,12 @@ review:
     show if: record_impounded
     button: |
       **Impoundment authority**:
-      ${ comma_and_list(impoundment_details.true_values()) }
+      % for item in impoundment_details.true_values():
+          - ${ item }
+      % endfor
 
+  - note: |
+      ## Appeal details
   - Edit: appellate_issues
     button: |
       **Anticipated issues**:
@@ -987,10 +995,12 @@ review:
       **Related matter description**:
       ${ related_appeals_description }
 
+  - note: |
+      ## Certificate of service
   - Edit: service_type
     button: |
       **Method of service**:
-      ${ service_type }
+      ${ {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}.get(service_type, service_type) }
 
   - Edit: parties_to_be_served
     button: |
@@ -1044,7 +1054,6 @@ progress: 100
 ---
 ---
 objects:
-  - service_recipients: ALPeopleList.using(minimum_number=1)
   - client: Individual
 ---
 ---
@@ -1085,7 +1094,7 @@ review:
   - Edit: filer_role
     button: |
       **Filer role**:
-      ${ filer_role }
+      ${ {"attorney": "Attorney", "pro_se": "Self-represented (pro se)"}.get(filer_role, filer_role) }
   - Edit: users.revisit
     button: |
       **Filer name**:
@@ -1161,17 +1170,17 @@ review:
   - Edit: judge1
     button: |
       **Judge 1**:
-      ${ judge1 } — ${ judge1_role }
+      ${ judge1 } - ${ judge1_role }
   - Edit: judge2
     show if: has_judge2
     button: |
       **Judge 2**:
-      ${ judge2 } — ${ judge2_role }
+      ${ judge2 } - ${ judge2_role }
   - Edit: judge3
     show if: has_judge2 and has_judge3
     button: |
       **Judge 3**:
-      ${ judge3 } — ${ judge3_role }
+      ${ judge3 } - ${ judge3_role }
 ---
 id: review impoundment section
 event: review_impoundment_section
@@ -1196,7 +1205,9 @@ review:
     show if: record_impounded
     button: |
       **Impoundment authority**:
-      ${ comma_and_list(impoundment_details.true_values()) }
+      % for item in impoundment_details.true_values():
+          - ${ item }
+      % endfor
 ---
 id: review appeal section
 event: review_appeal_section
@@ -1306,7 +1317,7 @@ review:
   - Edit: service_type
     button: |
       **Method of service**:
-      ${ service_type }
+      ${ {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}.get(service_type, service_type) }
   - Edit: parties_to_be_served
     button: |
       **Parties to be served**:
