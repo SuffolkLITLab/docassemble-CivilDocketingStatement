@@ -95,13 +95,13 @@ code: |
   # user information
   nav.set_section("user_information")
   users.there_is_another = False 
-  filer_role
+  al_person_answering
   users[0].name.first
-  if filer_role == "attorney":
+  if al_person_answering == "attorney":
     attorney_bbo
   users[0].address.address
   users[0].phone_number
-  if filer_role == "attorney":
+  if al_person_answering == "attorney":
     client.name.first
 
   # case info
@@ -195,21 +195,24 @@ terms:
     "within fourteen (14) days of issuance of the notice of entry of the appeal"
 
 ---
+code: |
+  al_person_answering_labels = {"attorney": "Attorney", "user": "Self-represented (pro se)"}
+---
 id: filer_role_screen
 question: |
   Who is filing this Civil Docketing Statement?
 fields:
-  - Filer role: filer_role
+  - Filer role: al_person_answering
     input type: radio
     choices:
-      - I am an attorney representing the appellant: attorney
-      - I am self-represented (pro se) and I am the appellant: pro_se
+      code: |
+        [{k: v} for k, v in al_person_answering_labels.items()]
 ---
 id: filer_name_screen
 question: |
   What is your name?
 # subquestion: |
-#   % if filer_role == "attorney":
+#   % if al_person_answering == "attorney":
 #   If you are the attorney representing the appellant, please enter your name.
 #   % else:
 #   Enter your .
@@ -235,7 +238,7 @@ question: |
 fields:
   - BBO number: attorney_bbo
 show if:
-  variable: filer_role
+  variable: al_person_answering
   is: attorney
 ---
 id: case_info_screen
@@ -677,6 +680,9 @@ fields:
   - Date of certificate of service: service_date
     datatype: date
 ---
+code: |
+  service_type_labels = {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}
+---
 id: method of service 
 question: |
   Certificate of service
@@ -696,9 +702,8 @@ fields:
   - Method of service: service_type
     datatype: radio
     choices:
-      - Email/E-File: email
-      - Mail: mail
-      - Hand delivery: hand 
+      code: |
+        [{k: v} for k, v in service_type_labels.items()] 
 
 ---
 id: parties to be served
@@ -723,7 +728,7 @@ signature: users[0].signature
 ---
 # # Helper variable for templates + review screen: one "appellant name" to print everywhere
 # code: |
-#   if filer_role == "pro_se":
+#   if al_person_answering == "user":
 #     appellant_name_to_print = users[0].name.full()
 #   else:
 #     appellant_name_to_print = appellant_name
@@ -751,10 +756,10 @@ question: |
 review:
   - note: |
       ## User information
-  - Edit: filer_role
+  - Edit: al_person_answering
     button: |
       **Filer role**:
-      ${ {"attorney": "Attorney", "pro_se": "Self-represented (pro se)"}.get(filer_role, filer_role) }
+      ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
 
   - Edit: users.revisit
     button: |
@@ -762,7 +767,7 @@ review:
       ${ users[0].name.full() }
 
   - Edit: attorney_bbo
-    show if: filer_role == "attorney"
+    show if: al_person_answering == "attorney"
     button: |
       **Attorney BBO number**:
       ${ attorney_bbo }
@@ -783,7 +788,7 @@ review:
       ${ users[0].email }
 
   - Edit: client.name.first
-    show if: filer_role == "attorney"
+    show if: al_person_answering == "attorney"
     button: |
       **Client name**:
       ${ client.name.full() }
@@ -856,13 +861,13 @@ review:
   - Edit: record_impounded
     button: |
       **Record impounded?**:
-      ${ "Yes" if record_impounded else "No" }
+      ${ word(yesno(record_impounded)) }
 
   - Edit: fully_impounded
     show if: record_impounded
     button: |
       **Entire case impounded?**:
-      ${ "Yes" if fully_impounded else "No" }
+      ${ word(yesno(fully_impounded)) }
 
   - Edit: impoundment_documents
     show if: record_impounded and not fully_impounded
@@ -888,7 +893,7 @@ review:
   - Edit: appeal_from_final_judgment
     button: |
       **Appeal from final judgment?**:
-      ${ "Yes" if appeal_from_final_judgment else "No" }
+      ${ word(yesno(appeal_from_final_judgment)) }
 
   - Edit: date_of_judgment
     button: |
@@ -909,7 +914,7 @@ review:
   - Edit: motion_50b_filed
     button: |
       **Rule 50(b) motion filed?**:
-      ${ "Yes" if motion_50b_filed else "No" }
+      ${ word(yesno(motion_50b_filed)) }
 
   - Edit: motion_50b_date_served
     show if: motion_50b_filed
@@ -920,7 +925,7 @@ review:
   - Edit: motion_52b_filed
     button: |
       **Rule 52(b) motion filed?**:
-      ${ "Yes" if motion_52b_filed else "No" }
+      ${ word(yesno(motion_52b_filed)) }
 
   - Edit: motion_52b_date_served
     show if: motion_52b_filed
@@ -931,7 +936,7 @@ review:
   - Edit: motion_59_filed
     button: |
       **Rule 59 motion filed?**:
-      ${ "Yes" if motion_59_filed else "No" }
+      ${ word(yesno(motion_59_filed)) }
 
   - Edit: motion_59_date_served
     show if: motion_59_filed
@@ -942,7 +947,7 @@ review:
   - Edit: motion_60_filed
     button: |
       **Rule 60 motion filed?**:
-      ${ "Yes" if motion_60_filed else "No" }
+      ${ word(yesno(motion_60_filed)) }
 
   - Edit: motion_60_date_served
     show if: motion_60_filed
@@ -953,7 +958,7 @@ review:
   - Edit: other_filed
     button: |
       **Other motion filed?**:
-      ${ "Yes" if other_filed else "No" }
+      ${ word(yesno(other_filed)) }
 
   - Edit: other_specify
     show if: other_filed
@@ -970,12 +975,12 @@ review:
   - Edit: related_appeals_parties
     button: |
       **Related appeals (same parties)?**:
-      ${ "Yes" if related_appeals_parties else "No" }
+      ${ word(yesno(related_appeals_parties)) }
 
   - Edit: related_appeals_issues
     button: |
       **Related appeals (same issues)?**:
-      ${ "Yes" if related_appeals_issues else "No" }
+      ${ word(yesno(related_appeals_issues)) }
 
   - Edit: related_appeals_case_name
     show if: related_appeals_parties or related_appeals_issues
@@ -1000,7 +1005,7 @@ review:
   - Edit: service_type
     button: |
       **Method of service**:
-      ${ {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}.get(service_type, service_type) }
+      ${ service_type_labels.get(service_type, service_type) }
 
   - Edit: parties_to_be_served
     button: |
@@ -1091,16 +1096,16 @@ event: review_user_info_section
 question: |
   Review: User Information
 review:
-  - Edit: filer_role
+  - Edit: al_person_answering
     button: |
       **Filer role**:
-      ${ {"attorney": "Attorney", "pro_se": "Self-represented (pro se)"}.get(filer_role, filer_role) }
+      ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
   - Edit: users.revisit
     button: |
       **Filer name**:
       ${ users[0].name.full() }
   - Edit: attorney_bbo
-    show if: filer_role == "attorney"
+    show if: al_person_answering == "attorney"
     button: |
       **Attorney BBO number**:
       ${ attorney_bbo }
@@ -1117,7 +1122,7 @@ review:
       **Filer email**:
       ${ users[0].email }
   - Edit: client.name.first
-    show if: filer_role == "attorney"
+    show if: al_person_answering == "attorney"
     button: |
       **Client name**:
       ${ client.name.full() }
@@ -1190,12 +1195,12 @@ review:
   - Edit: record_impounded
     button: |
       **Record impounded?**:
-      ${ "Yes" if record_impounded else "No" }
+      ${ word(yesno(record_impounded)) }
   - Edit: fully_impounded
     show if: record_impounded
     button: |
       **Entire case impounded?**:
-      ${ "Yes" if fully_impounded else "No" }
+      ${ word(yesno(fully_impounded)) }
   - Edit: impoundment_documents
     show if: record_impounded and not fully_impounded
     button: |
@@ -1221,7 +1226,7 @@ review:
   - Edit: appeal_from_final_judgment
     button: |
       **Appeal from final judgment?**:
-      ${ "Yes" if appeal_from_final_judgment else "No" }
+      ${ word(yesno(appeal_from_final_judgment)) }
   - Edit: date_of_judgment
     button: |
       **Date of judgment/order appealed**:
@@ -1238,7 +1243,7 @@ review:
   - Edit: motion_50b_filed
     button: |
       **Rule 50(b) motion filed?**:
-      ${ "Yes" if motion_50b_filed else "No" }
+      ${ word(yesno(motion_50b_filed)) }
   - Edit: motion_50b_date_served
     show if: motion_50b_filed
     button: |
@@ -1247,7 +1252,7 @@ review:
   - Edit: motion_52b_filed
     button: |
       **Rule 52(b) motion filed?**:
-      ${ "Yes" if motion_52b_filed else "No" }
+      ${ word(yesno(motion_52b_filed)) }
   - Edit: motion_52b_date_served
     show if: motion_52b_filed
     button: |
@@ -1256,7 +1261,7 @@ review:
   - Edit: motion_59_filed
     button: |
       **Rule 59 motion filed?**:
-      ${ "Yes" if motion_59_filed else "No" }
+      ${ word(yesno(motion_59_filed)) }
   - Edit: motion_59_date_served
     show if: motion_59_filed
     button: |
@@ -1265,7 +1270,7 @@ review:
   - Edit: motion_60_filed
     button: |
       **Rule 60 motion filed?**:
-      ${ "Yes" if motion_60_filed else "No" }
+      ${ word(yesno(motion_60_filed)) }
   - Edit: motion_60_date_served
     show if: motion_60_filed
     button: |
@@ -1274,7 +1279,7 @@ review:
   - Edit: other_filed
     button: |
       **Other motion filed?**:
-      ${ "Yes" if other_filed else "No" }
+      ${ word(yesno(other_filed)) }
   - Edit: other_specify
     show if: other_filed
     button: |
@@ -1288,11 +1293,11 @@ review:
   - Edit: related_appeals_parties
     button: |
       **Related appeals (same parties)?**:
-      ${ "Yes" if related_appeals_parties else "No" }
+      ${ word(yesno(related_appeals_parties)) }
   - Edit: related_appeals_issues
     button: |
       **Related appeals (same issues)?**:
-      ${ "Yes" if related_appeals_issues else "No" }
+      ${ word(yesno(related_appeals_issues)) }
   - Edit: related_appeals_case_name
     show if: related_appeals_parties or related_appeals_issues
     button: |
@@ -1317,7 +1322,7 @@ review:
   - Edit: service_type
     button: |
       **Method of service**:
-      ${ {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}.get(service_type, service_type) }
+      ${ service_type_labels.get(service_type, service_type) }
   - Edit: parties_to_be_served
     button: |
       **Parties to be served**:
