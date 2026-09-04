@@ -196,13 +196,13 @@ terms:
 
 ---
 code: |
-  al_person_answering_labels = {"attorney": "Attorney", "user": "Self-represented (pro se)"}
+  al_person_answering_labels = {"user": "Self-represented litigant", "attorney": "Attorney"}
 ---
 id: filer_role_screen
 question: |
-  Who is filing this Civil Docketing Statement?
+  Are you filling out this form for yourself?
 fields:
-  - Filer role: al_person_answering
+  - I am filling out this form as a: al_person_answering
     input type: radio
     choices:
       code: |
