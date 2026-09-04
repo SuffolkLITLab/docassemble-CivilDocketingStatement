@@ -27,6 +27,8 @@ metadata:
 
     1.
     2.
+  landing_page_url: >-
+    https://courtformsonline.org/
   maturity: production
   estimated_completion_minutes: 10
   estimated_completion_delta: 5
@@ -86,8 +88,6 @@ comment: |
 id: interview_order_civil_docketing_statement
 code: |
   allowed_courts = []
-  nav.set_section("review_civil_docketing_statement")
-
   nav.set_section("introduction")
   al_intro_screen
   civil_docketing_statement_intro
@@ -95,13 +95,13 @@ code: |
   # user information
   nav.set_section("user_information")
   users.there_is_another = False 
-  filer_role
+  al_person_answering
   users[0].name.first
-  if filer_role == "attorney":
+  if al_person_answering == "attorney":
     attorney_bbo
   users[0].address.address
   users[0].phone_number
-  if filer_role == "attorney":
+  if al_person_answering == "attorney":
     client.name.first
 
   # case info
@@ -120,13 +120,13 @@ code: |
     info_judge2
     more_judges_2
   else:
-    judge2 = judge2_role = "N/A"
-    judge3 = judge3_role = "N/A"
+    judge2 = judge2_role = ""
+    judge3 = judge3_role = ""
 
   if has_judge2 and has_judge3:
     info_judge3
   else:
-    judge3 = judge3_role = "N/A"
+    judge3 = judge3_role = ""
 
   nav.set_section("impoundment") 
   record_impounded
@@ -148,6 +148,7 @@ code: |
   service_date
   
   nav.set_section("signature")
+  civil_docketing_statement_preview_question
   # actual signature 
   users[0].signature
   
@@ -194,21 +195,24 @@ terms:
     "within fourteen (14) days of issuance of the notice of entry of the appeal"
 
 ---
+code: |
+  al_person_answering_labels = {"user": "Self-represented litigant", "attorney": "Attorney"}
+---
 id: filer_role_screen
 question: |
-  Who is filing this Civil Docketing Statement?
+  Are you filling out this form for yourself?
 fields:
-  - no label: filer_role
+  - I am filling out this form as a: al_person_answering
     input type: radio
     choices:
-      - I am an attorney representing the appellant: attorney
-      - I am self-represented (pro se) and I am the appellant: pro_se
+      code: |
+        [{k: v} for k, v in al_person_answering_labels.items()]
 ---
 id: filer_name_screen
 question: |
   What is your name?
 # subquestion: |
-#   % if filer_role == "attorney":
+#   % if al_person_answering == "attorney":
 #   If you are the attorney representing the appellant, please enter your name.
 #   % else:
 #   Enter your .
@@ -234,7 +238,7 @@ question: |
 fields:
   - BBO number: attorney_bbo
 show if:
-  variable: filer_role
+  variable: al_person_answering
   is: attorney
 ---
 id: case_info_screen
@@ -269,7 +273,7 @@ id: court_agency
 question: |
   Is the decision you are appealing from a {court} or an {agency}? 
 fields: 
-  - no label: inst_type
+  - Court or agency?: inst_type
     datatype: radio
     choices:
       - Court
@@ -305,6 +309,10 @@ fields:
   - Zip: users[0].address.zip
   - Telephone: users[0].phone_number
   - Email: users[0].email
+    datatype: email
+validation code: |
+  if not phone_number_is_valid(users[0].phone_number):
+    validation_error("Enter a valid phone number.", field="users[0].phone_number")
 ---
 id: info_judge1
 question: |
@@ -330,7 +338,7 @@ id: more_judges_1
 question: |
   Is there another judge whose order or judgment you are appealing?
 fields:
-  - no label: has_judge2
+  - Another judge?: has_judge2
     datatype: yesnoradio   
 continue button field: more_judges_1
 ---
@@ -356,7 +364,7 @@ id: more_judges_2
 question: |
   Is there another judge whose order or judgment you are appealing?
 fields:
-  - no label: has_judge3
+  - Another judge?: has_judge3
     datatype: yesnoradio   
 continue button field: more_judges_2
 ---
@@ -465,7 +473,7 @@ question: |
 subquestion: |
   Select the option that describes what the case was about. If it is not listed, choose "other"
 fields:
-  - no label: nature_of_case
+  - Nature of the case: nature_of_case
     choices:
       - Abuse Prevention Order
       - Administrative Law
@@ -672,6 +680,9 @@ fields:
   - Date of certificate of service: service_date
     datatype: date
 ---
+code: |
+  service_type_labels = {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}
+---
 id: method of service 
 question: |
   Certificate of service
@@ -688,12 +699,11 @@ subquestion: |
   **How will you deliver the required copy of the Massachusetts Appeals Court Civil Docketing Statement to the other parties in this appeal?**
 
 fields: 
-  - no label: service_type
+  - Method of service: service_type
     datatype: radio
     choices:
-      - Email/E-File: email
-      - Mail: mail
-      - Hand delivery: hand 
+      code: |
+        [{k: v} for k, v in service_type_labels.items()] 
 
 ---
 id: parties to be served
@@ -704,7 +714,7 @@ subquestion: |
   
   If you are serving more than one attorney or party, you may list more than one.
 fields:
-  - no label: parties_to_be_served
+  - Parties to be served: parties_to_be_served
     datatype: area
 ---
 
@@ -714,11 +724,11 @@ question: |
 subquestion: |
   By signing your name, you agree to
   our terms and conditions.
-signature: user[0].signature
+signature: users[0].signature
 ---
 # # Helper variable for templates + review screen: one "appellant name" to print everywhere
 # code: |
-#   if filer_role == "pro_se":
+#   if al_person_answering == "user":
 #     appellant_name_to_print = users[0].name.full()
 #   else:
 #     appellant_name_to_print = appellant_name
@@ -734,49 +744,66 @@ subquestion: |
   Click the image to open it in a new tab. Click the "Edit answers" button
   to edit your answers.
 
-  ${ action_button_html(url_action('review_civil_docketing_statement'), label='Edit answers', color='info') }
+  ${ action_button_html(url_action('review_all_sections'), label='Edit answers', color='info') }
 
   Remember to come back to this window to continue and sign your form.
 continue button field: civil_docketing_statement_preview_question
 ---
-code: |
-  signature_fields = []
----
-code: |
-  [user.address.address for user in users.complete_elements()]
-  addresses_to_search = [user.address for user in users.complete_elements()]
----
 id: civil docketing statement word review screen
-event: review_civil_docketing_statement
+event: review_all_sections
 question: |
   Review your answers
 review:
-  - Edit: filer_role
+  - note: |
+      ## User information
+  - Edit: al_person_answering
     button: |
       **Filer role**:
-      ${ filer_role }
+      ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
 
   - Edit: users.revisit
     button: |
-      **Filer name (attorney or appellant)**:
+      **Filer name**:
       ${ users[0].name.full() }
 
-  # - Edit: appellant_name
-  #   show if: filer_role == "attorney"
-  #   button: |
-  #     **Appellant name**:
-  #     ${ appellant_name }
-
   - Edit: attorney_bbo
-    show if: filer_role == "attorney"
+    show if: al_person_answering == "attorney"
     button: |
       **Attorney BBO number**:
       ${ attorney_bbo }
 
+  - Edit: users[0].address.address
+    button: |
+      **Filer address**:
+      ${ users[0].address.on_one_line() }
+
+  - Edit: users[0].phone_number
+    button: |
+      **Filer phone**:
+      ${ users[0].phone_number }
+
+  - Edit: users[0].email
+    button: |
+      **Filer email**:
+      ${ users[0].email }
+
+  - Edit: client.name.first
+    show if: al_person_answering == "attorney"
+    button: |
+      **Client name**:
+      ${ client.name.full() }
+
+  - note: |
+      ## Case information
   - Edit: appeal_docket_number
     button: |
       **Appeal docket number**:
       ${ appeal_docket_number }
+
+  - Edit: lower_docket_number
+    button: |
+      **Lower court docket number**:
+      ${ lower_docket_number }
 
   - Edit: plaintiff_caption
     button: |
@@ -787,22 +814,231 @@ review:
     button: |
       **Defendant caption**:
       ${ defendant_caption }
+
+  - Edit: inst_type
+    button: |
+      **Court or agency**:
+      ${ inst_type }
+
+  - Edit: court_department
+    show if: inst_type == "Court"
+    button: |
+      **Court department**:
+      ${ court_department }
+
+  - Edit: agency_name
+    show if: inst_type == "Agency"
+    button: |
+      **Agency name**:
+      ${ agency_name }
+
+  - Edit: nature_of_case
+    button: |
+      **Nature of case**:
+      ${ nature_of_case_other if nature_of_case == "Other" else nature_of_case }
+
+  - note: |
+      ## Judge information
+  - Edit: judge1
+    button: |
+      **Judge 1**:
+      ${ judge1 } - ${ judge1_role }
+
+  - Edit: judge2
+    show if: has_judge2
+    button: |
+      **Judge 2**:
+      ${ judge2 } - ${ judge2_role }
+
+  - Edit: judge3
+    show if: has_judge2 and has_judge3
+    button: |
+      **Judge 3**:
+      ${ judge3 } - ${ judge3_role }
+
+  - note: |
+      ## Impoundment details
+  - Edit: record_impounded
+    button: |
+      **Record impounded?**:
+      ${ word(yesno(record_impounded)) }
+
+  - Edit: fully_impounded
+    show if: record_impounded
+    button: |
+      **Entire case impounded?**:
+      ${ word(yesno(fully_impounded)) }
+
+  - Edit: impoundment_documents
+    show if: record_impounded and not fully_impounded
+    button: |
+      **Impounded documents**:
+      ${ impoundment_documents }
+
+  - Edit: impoundment_details
+    show if: record_impounded
+    button: |
+      **Impoundment authority**:
+      % for item in impoundment_details.true_values():
+          - ${ item }
+      % endfor
+
+  - note: |
+      ## Appeal details
+  - Edit: appellate_issues
+    button: |
+      **Anticipated issues**:
+      ${ appellate_issues }
+
+  - Edit: appeal_from_final_judgment
+    button: |
+      **Appeal from final judgment?**:
+      ${ word(yesno(appeal_from_final_judgment)) }
+
+  - Edit: date_of_judgment
+    button: |
+      **Date of judgment/order appealed**:
+      ${ date_of_judgment }
+
+  - Edit: interlocutory_appeal
+    show if: not appeal_from_final_judgment
+    button: |
+      **Basis for interlocutory appeal**:
+      ${ interlocutory_appeal }
+
+  - Edit: date_of_notice
+    button: |
+      **Date notice of appeal filed**:
+      ${ date_of_notice }
+
+  - Edit: motion_50b_filed
+    button: |
+      **Rule 50(b) motion filed?**:
+      ${ word(yesno(motion_50b_filed)) }
+
+  - Edit: motion_50b_date_served
+    show if: motion_50b_filed
+    button: |
+      **Rule 50(b) date served**:
+      ${ motion_50b_date_served }
+
+  - Edit: motion_52b_filed
+    button: |
+      **Rule 52(b) motion filed?**:
+      ${ word(yesno(motion_52b_filed)) }
+
+  - Edit: motion_52b_date_served
+    show if: motion_52b_filed
+    button: |
+      **Rule 52(b) date served**:
+      ${ motion_52b_date_served }
+
+  - Edit: motion_59_filed
+    button: |
+      **Rule 59 motion filed?**:
+      ${ word(yesno(motion_59_filed)) }
+
+  - Edit: motion_59_date_served
+    show if: motion_59_filed
+    button: |
+      **Rule 59 date served**:
+      ${ motion_59_date_served }
+
+  - Edit: motion_60_filed
+    button: |
+      **Rule 60 motion filed?**:
+      ${ word(yesno(motion_60_filed)) }
+
+  - Edit: motion_60_date_served
+    show if: motion_60_filed
+    button: |
+      **Rule 60 date served**:
+      ${ motion_60_date_served }
+
+  - Edit: other_filed
+    button: |
+      **Other motion filed?**:
+      ${ word(yesno(other_filed)) }
+
+  - Edit: other_specify
+    show if: other_filed
+    button: |
+      **Other motion description**:
+      ${ other_specify }
+
+  - Edit: other_date_served
+    show if: other_filed
+    button: |
+      **Other motion date served**:
+      ${ other_date_served }
+
+  - Edit: related_appeals_parties
+    button: |
+      **Related appeals (same parties)?**:
+      ${ word(yesno(related_appeals_parties)) }
+
+  - Edit: related_appeals_issues
+    button: |
+      **Related appeals (same issues)?**:
+      ${ word(yesno(related_appeals_issues)) }
+
+  - Edit: related_appeals_case_name
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related case name**:
+      ${ related_appeals_case_name }
+
+  - Edit: related_appeals_docket
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related docket number**:
+      ${ related_appeals_docket }
+
+  - Edit: related_appeals_description
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related matter description**:
+      ${ related_appeals_description }
+
+  - note: |
+      ## Certificate of service
+  - Edit: service_type
+    button: |
+      **Method of service**:
+      ${ service_type_labels.get(service_type, service_type) }
+
+  - Edit: parties_to_be_served
+    button: |
+      **Parties to be served**:
+      ${ parties_to_be_served }
+
+  - Edit: service_date
+    button: |
+      **Date of certificate of service**:
+      ${ service_date }
 ---
+id: edit filer name
 continue button field: users.revisit
 question: |
-  Edit filer name
+  Edit your information
 subquestion: |
   ${ users.table }
-
-  ${ users.add_action() }
 ---
 table: users.table
 rows: users
 columns:
   - Name: |
       row_item.name.full() if defined("row_item.name.first") else ""
+  - Address: |
+      row_item.address.on_one_line() if defined("row_item.address.address") else ""
+  - Phone: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
 edit:
   - name.first
+  - name.last
+  - address.address
+  - phone_number
+  - email
 confirm: True
 ---
 id: download civil_docketing_statement
@@ -814,7 +1050,7 @@ subquestion: |
 
   View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
 
-  ${ action_button_html(url_action('review_civil_docketing_statement'), label='Edit answers', color='info') }
+  ${ action_button_html(url_action('review_all_sections'), label='Edit answers', color='info') }
 
   ${ al_user_bundle.download_list_html() }
 
@@ -823,7 +1059,6 @@ progress: 100
 ---
 ---
 objects:
-  - service_recipients: ALPeopleList.using(minimum_number=1)
   - client: Individual
 ---
 ---
@@ -855,3 +1090,284 @@ attachment:
   docx template file: civil_docketing_statement.docx
   tagged pdf: True
   pdfa: True
+---
+id: review user info section
+event: review_user_info_section
+question: |
+  Review: User Information
+review:
+  - Edit: al_person_answering
+    button: |
+      **Filer role**:
+      ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+  - Edit: users.revisit
+    button: |
+      **Filer name**:
+      ${ users[0].name.full() }
+  - Edit: attorney_bbo
+    show if: al_person_answering == "attorney"
+    button: |
+      **Attorney BBO number**:
+      ${ attorney_bbo }
+  - Edit: users[0].address.address
+    button: |
+      **Filer address**:
+      ${ users[0].address.on_one_line() }
+  - Edit: users[0].phone_number
+    button: |
+      **Filer phone**:
+      ${ users[0].phone_number }
+  - Edit: users[0].email
+    button: |
+      **Filer email**:
+      ${ users[0].email }
+  - Edit: client.name.first
+    show if: al_person_answering == "attorney"
+    button: |
+      **Client name**:
+      ${ client.name.full() }
+---
+id: review case info section
+event: review_case_info_section
+question: |
+  Review: Case Information
+review:
+  - Edit: appeal_docket_number
+    button: |
+      **Appeal docket number**:
+      ${ appeal_docket_number }
+  - Edit: lower_docket_number
+    button: |
+      **Lower court docket number**:
+      ${ lower_docket_number }
+  - Edit: plaintiff_caption
+    button: |
+      **Plaintiff caption**:
+      ${ plaintiff_caption }
+  - Edit: defendant_caption
+    button: |
+      **Defendant caption**:
+      ${ defendant_caption }
+  - Edit: inst_type
+    button: |
+      **Court or agency**:
+      ${ inst_type }
+  - Edit: court_department
+    show if: inst_type == "Court"
+    button: |
+      **Court department**:
+      ${ court_department }
+  - Edit: agency_name
+    show if: inst_type == "Agency"
+    button: |
+      **Agency name**:
+      ${ agency_name }
+  - Edit: nature_of_case
+    button: |
+      **Nature of case**:
+      ${ nature_of_case_other if nature_of_case == "Other" else nature_of_case }
+---
+id: review judges section
+event: review_judges_section
+question: |
+  Review: Judge Information
+review:
+  - Edit: judge1
+    button: |
+      **Judge 1**:
+      ${ judge1 } - ${ judge1_role }
+  - Edit: judge2
+    show if: has_judge2
+    button: |
+      **Judge 2**:
+      ${ judge2 } - ${ judge2_role }
+  - Edit: judge3
+    show if: has_judge2 and has_judge3
+    button: |
+      **Judge 3**:
+      ${ judge3 } - ${ judge3_role }
+---
+id: review impoundment section
+event: review_impoundment_section
+question: |
+  Review: Impoundment Details
+review:
+  - Edit: record_impounded
+    button: |
+      **Record impounded?**:
+      ${ word(yesno(record_impounded)) }
+  - Edit: fully_impounded
+    show if: record_impounded
+    button: |
+      **Entire case impounded?**:
+      ${ word(yesno(fully_impounded)) }
+  - Edit: impoundment_documents
+    show if: record_impounded and not fully_impounded
+    button: |
+      **Impounded documents**:
+      ${ impoundment_documents }
+  - Edit: impoundment_details
+    show if: record_impounded
+    button: |
+      **Impoundment authority**:
+      % for item in impoundment_details.true_values():
+          - ${ item }
+      % endfor
+---
+id: review appeal section
+event: review_appeal_section
+question: |
+  Review: Appeal Details
+review:
+  - Edit: appellate_issues
+    button: |
+      **Anticipated issues**:
+      ${ appellate_issues }
+  - Edit: appeal_from_final_judgment
+    button: |
+      **Appeal from final judgment?**:
+      ${ word(yesno(appeal_from_final_judgment)) }
+  - Edit: date_of_judgment
+    button: |
+      **Date of judgment/order appealed**:
+      ${ date_of_judgment }
+  - Edit: interlocutory_appeal
+    show if: not appeal_from_final_judgment
+    button: |
+      **Basis for interlocutory appeal**:
+      ${ interlocutory_appeal }
+  - Edit: date_of_notice
+    button: |
+      **Date notice of appeal filed**:
+      ${ date_of_notice }
+  - Edit: motion_50b_filed
+    button: |
+      **Rule 50(b) motion filed?**:
+      ${ word(yesno(motion_50b_filed)) }
+  - Edit: motion_50b_date_served
+    show if: motion_50b_filed
+    button: |
+      **Rule 50(b) date served**:
+      ${ motion_50b_date_served }
+  - Edit: motion_52b_filed
+    button: |
+      **Rule 52(b) motion filed?**:
+      ${ word(yesno(motion_52b_filed)) }
+  - Edit: motion_52b_date_served
+    show if: motion_52b_filed
+    button: |
+      **Rule 52(b) date served**:
+      ${ motion_52b_date_served }
+  - Edit: motion_59_filed
+    button: |
+      **Rule 59 motion filed?**:
+      ${ word(yesno(motion_59_filed)) }
+  - Edit: motion_59_date_served
+    show if: motion_59_filed
+    button: |
+      **Rule 59 date served**:
+      ${ motion_59_date_served }
+  - Edit: motion_60_filed
+    button: |
+      **Rule 60 motion filed?**:
+      ${ word(yesno(motion_60_filed)) }
+  - Edit: motion_60_date_served
+    show if: motion_60_filed
+    button: |
+      **Rule 60 date served**:
+      ${ motion_60_date_served }
+  - Edit: other_filed
+    button: |
+      **Other motion filed?**:
+      ${ word(yesno(other_filed)) }
+  - Edit: other_specify
+    show if: other_filed
+    button: |
+      **Other motion description**:
+      ${ other_specify }
+  - Edit: other_date_served
+    show if: other_filed
+    button: |
+      **Other motion date served**:
+      ${ other_date_served }
+  - Edit: related_appeals_parties
+    button: |
+      **Related appeals (same parties)?**:
+      ${ word(yesno(related_appeals_parties)) }
+  - Edit: related_appeals_issues
+    button: |
+      **Related appeals (same issues)?**:
+      ${ word(yesno(related_appeals_issues)) }
+  - Edit: related_appeals_case_name
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related case name**:
+      ${ related_appeals_case_name }
+  - Edit: related_appeals_docket
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related docket number**:
+      ${ related_appeals_docket }
+  - Edit: related_appeals_description
+    show if: related_appeals_parties or related_appeals_issues
+    button: |
+      **Related matter description**:
+      ${ related_appeals_description }
+---
+id: review service section
+event: review_service_section
+question: |
+  Review: Certificate of Service
+review:
+  - Edit: service_type
+    button: |
+      **Method of service**:
+      ${ service_type_labels.get(service_type, service_type) }
+  - Edit: parties_to_be_served
+    button: |
+      **Parties to be served**:
+      ${ parties_to_be_served }
+  - Edit: service_date
+    button: |
+      **Date of certificate of service**:
+      ${ service_date }
+---
+id: sidebar introduction
+event: introduction
+code: |
+  force_ask('review_all_sections', forget_prior=True)
+---
+id: sidebar user information
+event: user_information
+code: |
+  force_ask('review_user_info_section', forget_prior=True)
+---
+id: sidebar case info
+event: case_info
+code: |
+  force_ask('review_case_info_section', forget_prior=True)
+---
+id: sidebar judges
+event: judges
+code: |
+  force_ask('review_judges_section', forget_prior=True)
+---
+id: sidebar impoundment
+event: impoundment
+code: |
+  force_ask('review_impoundment_section', forget_prior=True)
+---
+id: sidebar appeal info
+event: appeal_info
+code: |
+  force_ask('review_appeal_section', forget_prior=True)
+---
+id: sidebar service
+event: service
+code: |
+  force_ask('review_service_section', forget_prior=True)
+---
+id: sidebar signature
+event: signature
+code: |
+  force_ask('review_all_sections', forget_prior=True)
