@@ -4,6 +4,7 @@ include:
   - docassemble.ALAnyState:any_state.yml
   - docassemble.ALMassachusetts:al_massachusetts.yml
   - docassemble.MassAccess:massaccess.yml
+  - efiling.yml
 ---
 metadata:
   title: >-
@@ -96,6 +97,14 @@ code: |
   nav.set_section("user_information")
   users.there_is_another = False 
   al_person_answering
+  if can_check_efile:
+    tyler_login
+    if not appeals_case_search.case_was_found:
+      case_not_found_kickout
+    appeal_docket_number = appeals_case_search.found_case.docket_number
+    previous_case_id = appeals_case_search.found_case.tracking_id
+    add_appeals_existing_users
+    lead_contact = users[0]
   users[0].name.first
   if al_person_answering == "attorney":
     attorney_bbo
@@ -107,6 +116,7 @@ code: |
   # case info
   nav.set_section("case_info")
   appeal_docket_number
+  lower_docket_number
   plaintiff_caption
   inst_type 
   nature_of_case
@@ -161,6 +171,10 @@ code: |
   civil_docketing_statement_intro
   interview_order_civil_docketing_statement
   signature_date
+  if can_check_efile:
+    efile_phone_cleaned
+    all_required_screens_shown
+    ready_to_efile
 
   store_variables_snapshot(
       persistent=True,
@@ -202,7 +216,7 @@ id: filer_role_screen
 question: |
   Are you filling out this form for yourself?
 fields:
-  - I am filling out this form as a: al_person_answering
+  - I am a: al_person_answering
     input type: radio
     choices:
       code: |
@@ -250,6 +264,9 @@ subquestion: |
     Note: these two are different  
 fields:
   - Appeals docket number: appeal_docket_number
+    show if:
+      code: |
+        not showifdef('can_check_efile')
   - Lower court docket number: lower_docket_number
 terms: 
   Appeals Court docket number: |
@@ -757,14 +774,22 @@ review:
   - note: |
       ## User information
   - Edit: al_person_answering
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer role**:
       ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+  - note: |
+      **Filer role**: ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+    show if: showifdef('can_check_efile')
 
   - Edit: users.revisit
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer name**:
       ${ users[0].name.full() }
+  - note: |
+      **Filer name** (from the court's record): ${ users[0].name.full() }
+    show if: showifdef('can_check_efile')
 
   - Edit: attorney_bbo
     show if: al_person_answering == "attorney"
@@ -796,9 +821,13 @@ review:
   - note: |
       ## Case information
   - Edit: appeal_docket_number
+    show if: not showifdef('can_check_efile')
     button: |
       **Appeal docket number**:
       ${ appeal_docket_number }
+  - note: |
+      **Appeal docket number**: ${ appeal_docket_number }
+    show if: showifdef('can_check_efile')
 
   - Edit: lower_docket_number
     button: |
@@ -1052,6 +1081,16 @@ subquestion: |
 
   ${ action_button_html(url_action('review_all_sections'), label='Edit answers', color='info') }
 
+  % if defined('efile') and efile:
+  Your docketing statement was sent to the Appeals Court. You will get an email from eFileMA when the clerk accepts or rejects it.
+
+  **E-filing does not send a copy to the other parties.** You still need to send them a copy the way you described in your certificate of service.
+  % elif can_check_efile and ready_to_efile:
+  **Your form is not filed yet.** Click **E-File** to send it to the Appeals Court.
+
+  ${ action_button_html(url_ask([{'recompute': ['efile']}]), label='E-File', icon='file-export', id_tag='efile-button') }
+  % endif
+
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
@@ -1097,13 +1136,21 @@ question: |
   Review: User Information
 review:
   - Edit: al_person_answering
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer role**:
       ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+  - note: |
+      **Filer role**: ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+    show if: showifdef('can_check_efile')
   - Edit: users.revisit
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer name**:
       ${ users[0].name.full() }
+  - note: |
+      **Filer name** (from the court's record): ${ users[0].name.full() }
+    show if: showifdef('can_check_efile')
   - Edit: attorney_bbo
     show if: al_person_answering == "attorney"
     button: |
@@ -1133,9 +1180,13 @@ question: |
   Review: Case Information
 review:
   - Edit: appeal_docket_number
+    show if: not showifdef('can_check_efile')
     button: |
       **Appeal docket number**:
       ${ appeal_docket_number }
+  - note: |
+      **Appeal docket number**: ${ appeal_docket_number }
+    show if: showifdef('can_check_efile')
   - Edit: lower_docket_number
     button: |
       **Lower court docket number**:

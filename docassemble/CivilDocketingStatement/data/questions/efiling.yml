@@ -1,0 +1,235 @@
+---
+include:
+  - docassemble.EFSPIntegration:efiling_integration.yml
+  - docassemble.EFSPIntegration:case_search.yml
+  - docassemble.EFSPIntegration:toga_payments.yml
+---
+code: |
+  jurisdiction_id = 'massachusetts'
+---
+code: |
+  proxy_conn = ProxyConnection(credentials_code_block='tyler_login', default_jurisdiction=jurisdiction_id)
+---
+code: |
+  logged_out_interview = 'docassemble.MassAccess:efile-account-interview.yml'
+---
+code: |
+  admin_interview = "docassemble.EFSPIntegration:admin_interview.yml"
+---
+code: |
+  form_uses_efiling = True
+---
+# Docketing statements are always filed into an existing appeal
+code: |
+  is_initial_filing = False
+---
+# Docketing statements go on the Appeals Court panel docket
+code: |
+  court_id = 'appeals:acp'
+---
+only sets: efile_setup
+code: |
+  efile_setup = 'appeals' in available_efile_courts
+---
+id: civil user wants efile
+question: |
+  Do you want to e-file your docketing statement with the Appeals Court?
+subquestion: |
+  You can send this form to the Appeals Court online (e-file) through
+  eFileMA. You won't need to print it or bring it to the court.
+
+  You will need an eFileMA account. If you don't have one, you can make
+  one in the next screens.
+
+  If you don't want to e-file, you can download the form at the end and file it yourself.
+fields:
+  - Do you want to e-file?: user_wants_efile
+    datatype: yesnoradio
+---
+id: civil check efile possibility
+code: |
+  if not efile_setup:
+    show_no_efile
+    can_check_efile = False
+  elif not user_wants_efile:
+    can_check_efile = False
+  elif al_person_answering == 'attorney':
+    attorney_cannot_efile
+    can_check_efile = False
+  else:
+    can_check_efile = True
+---
+id: attorney cannot efile
+question: |
+  E-filing isn't available for attorneys yet
+subquestion: |
+  Right now this tool can only e-file for people who are representing themselves.
+
+  You can still finish this interview and download your form at the end.
+  Then you can file it through [eFileMA](https://massachusetts.tylertech.cloud/ofsweb)
+  yourself.
+continue button field: attorney_cannot_efile
+---
+# Appeals court search
+objects:
+  - appeals_case_search: EFCaseSearch
+---
+code: |
+  appeals_case_search.court_id = court_id
+---
+code: |
+  appeals_case_search.do_what_choice = 'docket_lookup'
+---
+code: |
+  target_case = appeals_case_search
+---
+generic object: EFCaseSearch
+template: x.docket_lookup_choice
+content: |
+  Appeals Court docket number
+---
+template: appeals_case_search.case_number_format_template
+subject: What does my Appeals Court docket number look like?
+content: |
+  The Appeals Court gave your appeal a docket number when it was entered.
+  It looks like this:
+
+  2025-P-0001
+
+  * the first 4 numbers are the year
+  * the letter in the middle is a "P"
+  * the last numbers are the sequence number
+---
+code: |
+  is_defendant_filters = [
+    CodeType('5788'),
+    CodeType('598'),
+    'Defendant/Appellee',
+    'Defendant/Appellant',
+    'Defendant/Petitioner',
+    'Defendant/Respondent',
+    'defendant',
+  ]
+---
+code: |
+  is_plaintiff_filters = [
+    CodeType('5779'),
+    'Plaintiff/Appellee',
+    'Plaintiff/Appellant',
+    'Plaintiff/Petitioner',
+    'Plaintiff/Respondent',
+    'plaintiff',
+  ]
+---
+# user's side comes from the participant they picked in the found case
+need:
+  - to_add_participants
+code: |
+  user_started_case = defined('user_ask_role') and user_ask_role == 'plaintiff'
+---
+only sets: add_appeals_existing_users
+code: |
+  add_existing_users
+  users.there_is_another = False
+  other_parties.there_is_another = False
+  add_appeals_existing_users = True
+---
+id: not in case kickout
+event: not_in_case_kickout
+question: |
+  You might have the wrong case
+subquestion: |
+  You need to be one of the parties in this appeal to e-file this
+  docketing statement.
+
+  Press **Back** to search for a different docket number.
+---
+need:
+  - users
+  - is_plaintiff_party
+  - is_defendant_party
+  - target_case.found_case
+  - target_case.self_in_case
+only sets: to_add_participants
+code: |
+  users.clear()
+  if target_case.self_in_case not in ['is_self', 'is_filing']:
+    not_in_case_kickout
+  else:
+    target_case.self_partip_choice.is_new = False
+    target_case.self_partip_choice.is_form_filler = target_case.self_in_case == 'is_self'
+    users.append(target_case.self_partip_choice.copy_deep('users[0]'))
+    if getattr(users[0], 'person_type', '') == 'business':
+      business_cannot_efile
+    if hasattr(users[-1].address, 'address'):
+      users[-1].address.geocode()
+    if is_plaintiff_party(users[0]):
+      user_ask_role = 'plaintiff'
+    elif is_defendant_party(users[0]):
+      user_ask_role = 'defendant'
+    to_add_participants = [p for p in target_case.found_case.participants if p.instanceName != target_case.self_partip_choice.instanceName and not is_unused_party(p)]
+---
+id: case not found kickout
+event: case_not_found_kickout
+question: |
+  We couldn't find your appeal
+subquestion: |
+  We couldn't find an Appeals Court case with the docket number
+  ${ appeals_case_search.docket_number_from_user }.
+
+  This tool only works for Appeals Court panel cases. Their docket numbers have a "P" in the middle, like 2025-P-0001.
+
+  Press **Back** to check the number and try again.
+---
+# - Codes - 
+# Category and case type come from the case we found
+code: |
+  efile_case_category = appeals_case_search.found_case.category
+---
+code: |
+  efile_case_type = appeals_case_search.found_case.efile_case_type
+---
+code: |
+  civil_docketing_statement_attachment.filing_type_filters = ['Docketing Statement']
+  civil_docketing_statement_attachment.filing_type_default = None
+---
+code: |
+  civil_docketing_statement_attachment.filing_description = ''
+  civil_docketing_statement_attachment.reference_number = None
+  civil_docketing_statement_attachment.filing_parties = ['users[0]']
+  civil_docketing_statement_attachment.filing_action = 'efile'
+---
+code: |
+  civil_docketing_statement_attachment.optional_services.there_are_any = False
+---
+code: |
+  tyler_payment_id = default_jurisdiction_waiver
+---
+# public case or partly impounded - public,
+# fully impounded case - impounded
+code: |
+  if record_impounded and fully_impounded:
+    civil_docketing_statement_attachment.document_type_filters = ['impounded']
+  else:
+    civil_docketing_statement_attachment.document_type_filters = ['public']
+  civil_docketing_statement_attachment.document_type_default = None
+  civil_docketing_statement_attachment.document_type_exclude = None
+---
+# MA eFile only accepts digits for phone numbers (no spaces, dashes or parentheses)
+code: |
+  for attr in ['phone_number', 'mobile_number']:
+    if defined('users[0].' + attr) and getattr(users[0], attr):
+      setattr(users[0], attr, ''.join(ch for ch in getattr(users[0], attr) if ch.isdigit())[-10:])
+  del attr
+  efile_phone_cleaned = True
+---
+id: business cannot efile
+event: business_cannot_efile
+question: |
+  We can't e-file for this party
+subquestion: |
+  You picked **${ users[0].name.full().strip() }**. This tool can only e-file for a
+  person who is representing themselves. A business usually needs a lawyer to file in the Appeals Court.
+
+  Press **Back** to pick a different person. Or go back to the e-filing
+  question, answer **No**, and download your form to file it another way.

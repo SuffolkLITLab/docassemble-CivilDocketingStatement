@@ -53,7 +53,7 @@ setup(name='docassemble.CivilDocketingStatement',
       license='MIT',
       url='https://courtformsonline.org',
       packages=find_namespace_packages(),
-      install_requires=['docassemble.ALAnyState @ git+https://github.com/SuffolkLITLab/docassemble-ALAnyState.git@main', 'docassemble.ALMassachusetts @ git+https://github.com/suffolklitlab/docassemble-ALMassachusetts.git@main', 'docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main', 'docassemble.MassAccess @ git+https://github.com/SuffolkLITLab/docassemble-MassAccess.git@main'],
+      install_requires=['docassemble.ALAnyState @ git+https://github.com/SuffolkLITLab/docassemble-ALAnyState.git@main', 'docassemble.ALMassachusetts @ git+https://github.com/suffolklitlab/docassemble-ALMassachusetts.git@main', 'docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main', 'docassemble.MassAccess @ git+https://github.com/SuffolkLITLab/docassemble-MassAccess.git@main', 'docassemble.EFSPIntegration>=1.4.1'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/CivilDocketingStatement/', package='docassemble.CivilDocketingStatement'),
      )
