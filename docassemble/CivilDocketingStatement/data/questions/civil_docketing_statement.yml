@@ -172,7 +172,7 @@ code: |
   interview_order_civil_docketing_statement
   signature_date
   if can_check_efile:
-    efile_phone_cleaned
+    civil_docketing_statement_attachment.completed
     all_required_screens_shown
     ready_to_efile
 
@@ -216,7 +216,7 @@ id: filer_role_screen
 question: |
   Are you filling out this form for yourself?
 fields:
-  - I am a: al_person_answering
+  - I am filing as a: al_person_answering
     input type: radio
     choices:
       code: |
