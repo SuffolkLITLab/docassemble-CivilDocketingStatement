@@ -169,8 +169,9 @@ code: |
       user_ask_role = 'defendant'
     to_add_participants = [p for p in target_case.found_case.participants if p.instanceName != target_case.self_partip_choice.instanceName and not is_unused_party(p)]
 ---
+only sets:
+  - case_not_found_kickout
 id: case not found kickout
-event: case_not_found_kickout
 question: |
   We couldn't find your appeal
 subquestion: |
@@ -179,7 +180,11 @@ subquestion: |
 
   This tool only works for Appeals Court panel cases. Their docket numbers have a "P" in the middle, like 2025-P-0001.
 
-  Press **Back** to check the number and try again.
+  * Press **Back** to check the number and try again.
+  * Press **Next** to finish without e-filing and download your form.
+continue button field: case_not_found_kickout
+validation code: |
+  can_check_efile = False
 ---
 # - Codes - 
 # Category and case type come from the case we found
@@ -200,6 +205,9 @@ code: |
   civil_docketing_statement_attachment.filing_action = 'efile'
 ---
 code: |
+  civil_docketing_statement_attachment.has_courtesy_copies = False
+---
+code: |
   civil_docketing_statement_attachment.optional_services.there_are_any = False
 ---
 code: |
@@ -215,14 +223,6 @@ code: |
   civil_docketing_statement_attachment.document_type_default = None
   civil_docketing_statement_attachment.document_type_exclude = None
 ---
-# MA eFile only accepts digits for phone numbers (no spaces, dashes or parentheses)
-code: |
-  for attr in ['phone_number', 'mobile_number']:
-    if defined('users[0].' + attr) and getattr(users[0], attr):
-      setattr(users[0], attr, ''.join(ch for ch in getattr(users[0], attr) if ch.isdigit())[-10:])
-  del attr
-  efile_phone_cleaned = True
----
 id: business cannot efile
 event: business_cannot_efile
 question: |
@@ -233,3 +233,8 @@ subquestion: |
 
   Press **Back** to pick a different person. Or go back to the e-filing
   question, answer **No**, and download your form to file it another way.
+---
+if: can_check_efile
+code: |
+  # No fee for docketing statements; we use the waiver account, so skip the fee screen
+  review_fees_screen = True
