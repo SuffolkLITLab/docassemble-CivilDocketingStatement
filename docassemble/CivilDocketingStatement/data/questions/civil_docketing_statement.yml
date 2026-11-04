@@ -72,6 +72,7 @@ code: |
 ---
 objects:
   - users: ALPeopleList.using(ask_number=False, target_number=1)
+  - lower_court_case: DAObject
 ---
 sections:
   - introduction: Introduction
@@ -164,6 +165,17 @@ code: |
   
   interview_order_civil_docketing_statement = True
 ---
+# Tyler's appeals case needs the lower court info, even when filing into an existing appeal
+depends on:
+  - plaintiff_caption
+  - defendant_caption
+  - lower_docket_number
+  - judge1
+code: |
+  lower_court_case.title = plaintiff_caption + " v. " + defendant_caption
+  lower_court_case.docket_number = lower_docket_number
+  lower_court_case.judge = judge1
+---
 ###################### Main order ######################
 mandatory: True
 code: |
@@ -172,6 +184,10 @@ code: |
   interview_order_civil_docketing_statement
   signature_date
   if can_check_efile:
+    lower_court_case.title
+    lower_court_case.docket_number
+    lower_court_case.judge
+    tyler_payment_id
     civil_docketing_statement_attachment.completed
     all_required_screens_shown
     ready_to_efile
