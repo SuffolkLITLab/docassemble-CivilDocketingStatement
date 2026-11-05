@@ -45,7 +45,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 
 setup(name='docassemble.CivilDocketingStatement',
       version='1.0',
-      description=('Civil docketing statement word'),
+      description=('Civil docketing statement'),
       long_description='# docassemble.CivilDocketingStatement\r\n\r\nCivil Docketing Statement for the Massachusetts Appeals Court\r\n\r\n## Author\r\n\r\nkathryn.lynch@su.suffolk.edu\r\n\r\n\r\n\r\n',
       long_description_content_type='text/markdown',
       author='',
@@ -53,7 +53,7 @@ setup(name='docassemble.CivilDocketingStatement',
       license='MIT',
       url='https://courtformsonline.org',
       packages=find_namespace_packages(),
-      install_requires=['docassemble.ALAnyState @ git+https://github.com/SuffolkLITLab/docassemble-ALAnyState.git@main', 'docassemble.ALMassachusetts>=0.2.0', 'docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main', 'docassemble.MassAccess @ git+https://github.com/SuffolkLITLab/docassemble-MassAccess.git@main'],
+      install_requires=['docassemble.ALAnyState @ git+https://github.com/SuffolkLITLab/docassemble-ALAnyState.git@main', 'docassemble.ALMassachusetts @ git+https://github.com/suffolklitlab/docassemble-ALMassachusetts.git@main', 'docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main', 'docassemble.MassAccess @ git+https://github.com/SuffolkLITLab/docassemble-MassAccess.git@main'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/CivilDocketingStatement/', package='docassemble.CivilDocketingStatement'),
      )
