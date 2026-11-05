@@ -102,6 +102,7 @@ code: |
     tyler_login
     if not appeals_case_search.case_was_found:
       case_not_found_kickout
+  if can_check_efile:
     appeal_docket_number = appeals_case_search.found_case.docket_number
     previous_case_id = appeals_case_search.found_case.tracking_id
     add_appeals_existing_users
