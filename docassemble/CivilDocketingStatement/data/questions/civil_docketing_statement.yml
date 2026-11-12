@@ -276,9 +276,13 @@ id: case_info_screen
 question: |
   Docket information
 subquestion: |
-    Enter the {Appeals Court docket number} and the {lower court docket number}. 
+  % if showifdef('can_check_efile'):
+  Enter the {lower court docket number}. This is different from your Appeals Court docket number.
+  % else:
+  Enter the {Appeals Court docket number} and the {lower court docket number}.
 
-    Note: these two are different  
+  Note: these two are different
+  % endif
 fields:
   - Appeals docket number: appeal_docket_number
     show if:
@@ -333,20 +337,42 @@ terms:
 
 ---
 id: filer_contact
+sets:
+  - users[0].address.address
+  - users[0].address.unit
+  - users[0].address.city
+  - users[0].address.state
+  - users[0].address.zip
+  - users[0].phone_number
+  - users[0].email
 question: |
-  Enter your contact information 
+  Enter your contact information
 fields:
-  - Address: users[0].address.address
-  - City: users[0].address.city
-  - State: users[0].address.state
-    default: MA
-  - Zip: users[0].address.zip
-  - Telephone: users[0].phone_number
-  - Email: users[0].email
-    datatype: email
+  - code: |
+      filer_contact_fields
 validation code: |
   if not phone_number_is_valid(users[0].phone_number):
     validation_error("Enter a valid phone number.", field="users[0].phone_number")
+---
+# prefill from the user's e-filing account
+code: |
+  use_efile_defaults = can_check_efile and not logged_in_user_is_admin
+  filer_contact_fields = address_fields_with_defaults(
+    proxy_conn, users[0], not use_efile_defaults,
+    country_code='US', default_state='MA')
+  phone_default = ''
+  email_default = ''
+  if use_efile_defaults:
+    efile_user = proxy_conn.get_user()
+    if efile_user.is_ok():
+      email_default = efile_user.data.get('email', '')
+    efile_firm = proxy_conn.get_firm()
+    if efile_firm.is_ok():
+      phone_default = efile_firm.data.get('phoneNumber', '')
+  filer_contact_fields += [
+    {"label": "Telephone", "field": "users[0].phone_number", "default": phone_default},
+    {"label": "Email", "field": "users[0].email", "datatype": "email", "default": email_default},
+  ]
 ---
 id: info_judge1
 question: |
@@ -715,7 +741,7 @@ fields:
     datatype: date
 ---
 code: |
-  service_type_labels = {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}
+  service_type_labels = {"email": "Email", "mail": "Mail", "hand": "Hand delivery"}
 ---
 id: method of service 
 question: |
@@ -726,7 +752,11 @@ subquestion: |
   
   If the Certificate of Service is not completed, this filing will not be accepted.
 
-  You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal. 
+  You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal.
+
+  % if showifdef('can_check_efile'):
+  E-filing this form with the court does not serve the other parties. You still have to send them a copy yourself.
+  % endif
   
   You should not provide a copy of the Affidavit of Indigency, if any, to anyone except the Appeals Court.  
 

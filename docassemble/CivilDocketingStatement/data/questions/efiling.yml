@@ -175,10 +175,16 @@ id: case not found kickout
 question: |
   We couldn't find your appeal
 subquestion: |
+  % if "-P-" not in str(appeals_case_search.docket_number_from_user).upper():
+  **${ appeals_case_search.docket_number_from_user }** doesn't look like an Appeals Court docket number. It may be the number from your lower court case.
+
+  Enter the Appeals Court docket number, the one you got after you filed your Notice of Entry of Appeal. It has a "P" in the middle, like 2025-P-0001.
+  % else:
   We couldn't find an Appeals Court case with the docket number
   ${ appeals_case_search.docket_number_from_user }.
 
   This tool only works for Appeals Court panel cases. Their docket numbers have a "P" in the middle, like 2025-P-0001.
+  % endif
 
   * Press **Back** to check the number and try again.
   * Press **Next** to finish without e-filing and download your form.
