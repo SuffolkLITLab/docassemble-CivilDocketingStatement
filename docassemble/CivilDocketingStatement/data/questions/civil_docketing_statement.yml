@@ -4,6 +4,7 @@ include:
   - docassemble.ALAnyState:any_state.yml
   - docassemble.ALMassachusetts:al_massachusetts.yml
   - docassemble.MassAccess:massaccess.yml
+  - efiling.yml
 ---
 metadata:
   title: >-
@@ -71,6 +72,7 @@ code: |
 ---
 objects:
   - users: ALPeopleList.using(ask_number=False, target_number=1)
+  - lower_court_case: DAObject
 ---
 sections:
   - introduction: Introduction
@@ -96,6 +98,16 @@ code: |
   nav.set_section("user_information")
   users.there_is_another = False 
   al_person_answering
+  if can_check_efile:
+    tyler_login
+    if not appeals_case_search.case_was_found:
+      case_not_found_kickout
+  if can_check_efile:
+    appeal_docket_number = appeals_case_search.found_case.docket_number
+    previous_case_id = appeals_case_search.found_case.tracking_id
+    add_appeals_existing_users
+    lead_contact = users[0]
+    filer_name_checked
   users[0].name.first
   if al_person_answering == "attorney":
     attorney_bbo
@@ -107,6 +119,7 @@ code: |
   # case info
   nav.set_section("case_info")
   appeal_docket_number
+  lower_docket_number
   plaintiff_caption
   inst_type 
   nature_of_case
@@ -154,6 +167,17 @@ code: |
   
   interview_order_civil_docketing_statement = True
 ---
+# Tyler's appeals case needs the lower court info, even when filing into an existing appeal
+depends on:
+  - plaintiff_caption
+  - defendant_caption
+  - lower_docket_number
+  - judge1
+code: |
+  lower_court_case.title = plaintiff_caption + " v. " + defendant_caption
+  lower_court_case.docket_number = lower_docket_number
+  lower_court_case.judge = judge1
+---
 ###################### Main order ######################
 mandatory: True
 code: |
@@ -161,6 +185,14 @@ code: |
   civil_docketing_statement_intro
   interview_order_civil_docketing_statement
   signature_date
+  if can_check_efile:
+    lower_court_case.title
+    lower_court_case.docket_number
+    lower_court_case.judge
+    tyler_payment_id
+    civil_docketing_statement_attachment.completed
+    all_required_screens_shown
+    ready_to_efile
 
   store_variables_snapshot(
       persistent=True,
@@ -202,21 +234,27 @@ id: filer_role_screen
 question: |
   Are you filling out this form for yourself?
 fields:
-  - I am filling out this form as a: al_person_answering
+  - I am filing as a: al_person_answering
     input type: radio
     choices:
       code: |
         [{k: v} for k, v in al_person_answering_labels.items()]
 ---
+# on impounded cases the court gives a placeholder name like "Plaintiff/Appellant (1)"
+# clear it so the name screen asks for the real name
+code: |
+  if "/" in users[0].name.full() or "(" in users[0].name.full():
+    undefine('users[0].name.first', 'users[0].name.middle', 'users[0].name.last')
+  filer_name_checked = True
+---
+
 id: filer_name_screen
 question: |
   What is your name?
-# subquestion: |
-#   % if al_person_answering == "attorney":
-#   If you are the attorney representing the appellant, please enter your name.
-#   % else:
-#   Enter your .
-#   % endif
+subquestion: |
+  % if showifdef('can_check_efile'):
+  The court doesn't show the names of the people in this case. Enter your name the way it should be on the form.
+  % endif
 fields:
   - First name: users[0].name.first
   - Middle name: users[0].name.middle
@@ -245,11 +283,18 @@ id: case_info_screen
 question: |
   Docket information
 subquestion: |
-    Enter the {Appeals Court docket number} and the {lower court docket number}. 
+  % if showifdef('can_check_efile'):
+  Enter the {lower court docket number}. This is different from your Appeals Court docket number.
+  % else:
+  Enter the {Appeals Court docket number} and the {lower court docket number}.
 
-    Note: these two are different  
+  Note: these two are different
+  % endif
 fields:
   - Appeals docket number: appeal_docket_number
+    show if:
+      code: |
+        not showifdef('can_check_efile')
   - Lower court docket number: lower_docket_number
 terms: 
   Appeals Court docket number: |
@@ -299,20 +344,42 @@ terms:
 
 ---
 id: filer_contact
+sets:
+  - users[0].address.address
+  - users[0].address.unit
+  - users[0].address.city
+  - users[0].address.state
+  - users[0].address.zip
+  - users[0].phone_number
+  - users[0].email
 question: |
-  Enter your contact information 
+  Enter your contact information
 fields:
-  - Address: users[0].address.address
-  - City: users[0].address.city
-  - State: users[0].address.state
-    default: MA
-  - Zip: users[0].address.zip
-  - Telephone: users[0].phone_number
-  - Email: users[0].email
-    datatype: email
+  - code: |
+      filer_contact_fields
 validation code: |
   if not phone_number_is_valid(users[0].phone_number):
     validation_error("Enter a valid phone number.", field="users[0].phone_number")
+---
+# prefill from the user's e-filing account
+code: |
+  use_efile_defaults = can_check_efile and not logged_in_user_is_admin
+  filer_contact_fields = address_fields_with_defaults(
+    proxy_conn, users[0], not use_efile_defaults,
+    country_code='US', default_state='MA')
+  phone_default = ''
+  email_default = ''
+  if use_efile_defaults:
+    efile_user = proxy_conn.get_user()
+    if efile_user.is_ok():
+      email_default = efile_user.data.get('email', '')
+    efile_firm = proxy_conn.get_firm()
+    if efile_firm.is_ok():
+      phone_default = efile_firm.data.get('phoneNumber', '')
+  filer_contact_fields += [
+    {"label": "Telephone", "field": "users[0].phone_number", "default": phone_default},
+    {"label": "Email", "field": "users[0].email", "datatype": "email", "default": email_default},
+  ]
 ---
 id: info_judge1
 question: |
@@ -681,7 +748,7 @@ fields:
     datatype: date
 ---
 code: |
-  service_type_labels = {"email": "Email/E-File", "mail": "Mail", "hand": "Hand delivery"}
+  service_type_labels = {"email": "Email", "mail": "Mail", "hand": "Hand delivery"}
 ---
 id: method of service 
 question: |
@@ -692,7 +759,11 @@ subquestion: |
   
   If the Certificate of Service is not completed, this filing will not be accepted.
 
-  You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal. 
+  You are required to provide a copy of this Massachusetts Appeals Court Civil Docketing Statement to each attorney or self-represented party in this appeal.
+
+  % if showifdef('can_check_efile'):
+  E-filing this form with the court does not serve the other parties. You still have to send them a copy yourself.
+  % endif
   
   You should not provide a copy of the Affidavit of Indigency, if any, to anyone except the Appeals Court.  
 
@@ -757,14 +828,22 @@ review:
   - note: |
       ## User information
   - Edit: al_person_answering
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer role**:
       ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+  - note: |
+      **Filer role**: ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+    show if: showifdef('can_check_efile')
 
   - Edit: users.revisit
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer name**:
       ${ users[0].name.full() }
+  - note: |
+      **Filer name**: ${ users[0].name.full() }
+    show if: showifdef('can_check_efile')
 
   - Edit: attorney_bbo
     show if: al_person_answering == "attorney"
@@ -796,9 +875,13 @@ review:
   - note: |
       ## Case information
   - Edit: appeal_docket_number
+    show if: not showifdef('can_check_efile')
     button: |
       **Appeal docket number**:
       ${ appeal_docket_number }
+  - note: |
+      **Appeal docket number**: ${ appeal_docket_number }
+    show if: showifdef('can_check_efile')
 
   - Edit: lower_docket_number
     button: |
@@ -1052,6 +1135,16 @@ subquestion: |
 
   ${ action_button_html(url_action('review_all_sections'), label='Edit answers', color='info') }
 
+  % if defined('efile') and efile:
+  Your docketing statement was sent to the Appeals Court. You will get an email from eFileMA when the clerk accepts or rejects it.
+
+  **E-filing does not send a copy to the other parties.** You still need to send them a copy the way you described in your certificate of service.
+  % elif can_check_efile and ready_to_efile:
+  **Your form is not filed yet.** Click **E-File** to send it to the Appeals Court.
+
+  ${ action_button_html(url_ask([{'recompute': ['efile']}]), label='E-File', icon='file-export', id_tag='efile-button') }
+  % endif
+
   ${ al_user_bundle.download_list_html() }
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
@@ -1097,13 +1190,21 @@ question: |
   Review: User Information
 review:
   - Edit: al_person_answering
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer role**:
       ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+  - note: |
+      **Filer role**: ${ al_person_answering_labels.get(al_person_answering, al_person_answering) }
+    show if: showifdef('can_check_efile')
   - Edit: users.revisit
+    show if: not showifdef('can_check_efile')
     button: |
       **Filer name**:
       ${ users[0].name.full() }
+  - note: |
+      **Filer name**: ${ users[0].name.full() }
+    show if: showifdef('can_check_efile')
   - Edit: attorney_bbo
     show if: al_person_answering == "attorney"
     button: |
@@ -1133,9 +1234,13 @@ question: |
   Review: Case Information
 review:
   - Edit: appeal_docket_number
+    show if: not showifdef('can_check_efile')
     button: |
       **Appeal docket number**:
       ${ appeal_docket_number }
+  - note: |
+      **Appeal docket number**: ${ appeal_docket_number }
+    show if: showifdef('can_check_efile')
   - Edit: lower_docket_number
     button: |
       **Lower court docket number**:
