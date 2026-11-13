@@ -107,6 +107,7 @@ code: |
     previous_case_id = appeals_case_search.found_case.tracking_id
     add_appeals_existing_users
     lead_contact = users[0]
+    filer_name_checked
   users[0].name.first
   if al_person_answering == "attorney":
     attorney_bbo
@@ -239,15 +240,21 @@ fields:
       code: |
         [{k: v} for k, v in al_person_answering_labels.items()]
 ---
+# on impounded cases the court gives a placeholder name like "Plaintiff/Appellant (1)"
+# clear it so the name screen asks for the real name
+code: |
+  if "/" in users[0].name.full() or "(" in users[0].name.full():
+    undefine('users[0].name.first', 'users[0].name.middle', 'users[0].name.last')
+  filer_name_checked = True
+---
+
 id: filer_name_screen
 question: |
   What is your name?
-# subquestion: |
-#   % if al_person_answering == "attorney":
-#   If you are the attorney representing the appellant, please enter your name.
-#   % else:
-#   Enter your .
-#   % endif
+subquestion: |
+  % if showifdef('can_check_efile'):
+  The court doesn't show the names of the people in this case. Enter your name the way it should be on the form.
+  % endif
 fields:
   - First name: users[0].name.first
   - Middle name: users[0].name.middle
@@ -835,7 +842,7 @@ review:
       **Filer name**:
       ${ users[0].name.full() }
   - note: |
-      **Filer name** (from the court's record): ${ users[0].name.full() }
+      **Filer name**: ${ users[0].name.full() }
     show if: showifdef('can_check_efile')
 
   - Edit: attorney_bbo
@@ -1196,7 +1203,7 @@ review:
       **Filer name**:
       ${ users[0].name.full() }
   - note: |
-      **Filer name** (from the court's record): ${ users[0].name.full() }
+      **Filer name**: ${ users[0].name.full() }
     show if: showifdef('can_check_efile')
   - Edit: attorney_bbo
     show if: al_person_answering == "attorney"

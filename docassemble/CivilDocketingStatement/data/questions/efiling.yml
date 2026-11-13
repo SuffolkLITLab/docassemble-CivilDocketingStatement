@@ -169,6 +169,26 @@ code: |
       user_ask_role = 'defendant'
     to_add_participants = [p for p in target_case.found_case.participants if p.instanceName != target_case.self_partip_choice.instanceName and not is_unused_party(p)]
 ---
+if: not x.can_file_non_indexed_case
+generic object: EFCaseSearch
+id: appeals no cases found
+event: x.warn_no_results
+question: |
+  We couldn't find your appeal
+subquestion: |
+  % if "-P-" not in str(x.docket_number_from_user).upper():
+  **${ x.docket_number_from_user }** doesn't look like an Appeals Court docket number. It may be the number from your lower court case.
+
+  Enter the Appeals Court docket number, the one you got after you filed your Notice of Entry of Appeal. It has a "P" in the middle, like 2025-P-0001.
+  % else:
+  We couldn't find an Appeals Court case with the docket number
+  ${ x.docket_number_from_user }.
+
+  This tool only works for Appeals Court panel cases. Their docket numbers have a "P" in the middle, like 2025-P-0001.
+  % endif
+
+  Press **Undo** below to check the number and try again. If you don't want to e-file, go back and choose not to e-file, and you can still download your form.
+---
 only sets:
   - case_not_found_kickout
 id: case not found kickout
